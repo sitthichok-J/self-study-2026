@@ -1,0 +1,99 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`baseline: snapshot ของแต่ละคอมโพเนนต์ > App ทั้งหน้า 1`] = `
+"<main data-v-7a7a37b1="" class="page">
+  <header data-v-7a7a37b1="" class="head">
+    <div data-v-7a7a37b1="">
+      <h1 data-v-7a7a37b1="">Claim List</h1>
+      <p data-v-7a7a37b1="" class="sub">Day 1 · Vue 3 พื้นฐาน — ref, computed, watch, props/emits, slots (ข้อมูลสมมติ)</p>
+    </div>
+    <div data-v-fe097fd2="" data-v-7a7a37b1="" class="theme" role="group" aria-label="โหมดสี"><button data-v-fe097fd2="" class="active" aria-pressed="true">ตามระบบ</button><button data-v-fe097fd2="" class="" aria-pressed="false">สว่าง</button><button data-v-fe097fd2="" class="" aria-pressed="false">มืด</button></div>
+  </header>
+  <section data-v-7a7a37b1="" class="stats">
+    <div data-v-7a7a37b1="" class="stat"><span data-v-7a7a37b1="">ทั้งหมด</span><b data-v-7a7a37b1="">4</b></div>
+    <div data-v-7a7a37b1="" class="stat"><span data-v-7a7a37b1="">รอตรวจสอบ</span><b data-v-7a7a37b1="">2</b></div>
+    <div data-v-7a7a37b1="" class="stat"><span data-v-7a7a37b1="">อนุมัติ</span><b data-v-7a7a37b1="">1</b></div>
+    <div data-v-7a7a37b1="" class="stat"><span data-v-7a7a37b1="">ปฏิเสธ</span><b data-v-7a7a37b1="">1</b></div>
+  </section>
+  <section data-v-7a7a37b1="" class="card">
+    <h2 data-v-7a7a37b1="">เพิ่มเคลมใหม่</h2>
+    <form data-v-a6b52e52="" data-v-7a7a37b1="" class="form">
+      <div data-v-a6b52e52="" class="fields"><label data-v-a6b52e52=""><span data-v-a6b52e52="">รหัสผู้ป่วย</span><input data-v-a6b52e52="" placeholder="เช่น P-1004"></label><label data-v-a6b52e52=""><span data-v-a6b52e52="">โรงพยาบาล</span><input data-v-a6b52e52="" placeholder="เช่น รพ.ตัวอย่าง"></label><label data-v-a6b52e52=""><span data-v-a6b52e52="">จำนวนเงิน (บาท)</span><input data-v-a6b52e52="" type="number" min="0"></label></div>
+      <!--v-if--><button data-v-2d3a2488="" data-v-a6b52e52="" type="submit" class="btn btn--primary">+ เพิ่มเคลม</button>
+    </form>
+  </section>
+  <section data-v-7a7a37b1="" class="card">
+    <div data-v-7a7a37b1="" class="toolbar"><input data-v-e65075cf="" data-v-7a7a37b1="" class="search" type="search" placeholder="ค้นหา รหัสผู้ป่วย / โรงพยาบาล…">
+      <div data-v-7a7a37b1="" class="tabs"><button data-v-7a7a37b1="" class="active">ทั้งหมด</button><button data-v-7a7a37b1="" class="">รอตรวจสอบ</button><button data-v-7a7a37b1="" class="">อนุมัติ</button><button data-v-7a7a37b1="" class="">ปฏิเสธ</button></div>
+    </div>
+    <ul data-v-1106a014="" data-v-7a7a37b1="" class="list">
+      <li data-v-e29c0677="" data-v-1106a014="" class="item">
+        <div data-v-e29c0677="" class="main"><strong data-v-e29c0677="">P-1001</strong><span data-v-e29c0677="" class="hospital">รพ.ตัวอย่าง A</span></div>
+        <div data-v-e29c0677="" class="amount">฿ 12,500.00</div><span data-v-e29c0677="" class="badge badge--PENDING">รอตรวจสอบ</span>
+        <div data-v-e29c0677="" class="actions">
+          <!-- v-if / v-else-if: ปุ่มเปลี่ยนตามสถานะ --><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--primary">อนุมัติ</button><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--ghost"> ปฏิเสธ </button><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--danger">ลบ</button>
+        </div>
+      </li>
+      <li data-v-e29c0677="" data-v-1106a014="" class="item">
+        <div data-v-e29c0677="" class="main"><strong data-v-e29c0677="">P-1002</strong><span data-v-e29c0677="" class="hospital">รพ.ตัวอย่าง B</span></div>
+        <div data-v-e29c0677="" class="amount">฿ 8,200.50</div><span data-v-e29c0677="" class="badge badge--APPROVED">อนุมัติ</span>
+        <div data-v-e29c0677="" class="actions">
+          <!-- v-if / v-else-if: ปุ่มเปลี่ยนตามสถานะ --><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--ghost"> ย้อนเป็นรอตรวจสอบ </button><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--danger">ลบ</button>
+        </div>
+      </li>
+      <li data-v-e29c0677="" data-v-1106a014="" class="item">
+        <div data-v-e29c0677="" class="main"><strong data-v-e29c0677="">P-1003</strong><span data-v-e29c0677="" class="hospital">รพ.ตัวอย่าง A</span></div>
+        <div data-v-e29c0677="" class="amount">฿ 31,000.00</div><span data-v-e29c0677="" class="badge badge--REJECTED">ปฏิเสธ</span>
+        <div data-v-e29c0677="" class="actions">
+          <!-- v-if / v-else-if: ปุ่มเปลี่ยนตามสถานะ --><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--ghost"> ย้อนเป็นรอตรวจสอบ </button><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--danger">ลบ</button>
+        </div>
+      </li>
+      <li data-v-e29c0677="" data-v-1106a014="" class="item">
+        <div data-v-e29c0677="" class="main"><strong data-v-e29c0677="">P-1004</strong><span data-v-e29c0677="" class="hospital">รพ.ตัวอย่าง C</span></div>
+        <div data-v-e29c0677="" class="amount">฿ 4,300.00</div><span data-v-e29c0677="" class="badge badge--PENDING">รอตรวจสอบ</span>
+        <div data-v-e29c0677="" class="actions">
+          <!-- v-if / v-else-if: ปุ่มเปลี่ยนตามสถานะ --><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--primary">อนุมัติ</button><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--ghost"> ปฏิเสธ </button><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--danger">ลบ</button>
+        </div>
+      </li>
+    </ul>
+    <p data-v-7a7a37b1="" class="total"> แสดง 4 รายการ · รวม <b data-v-7a7a37b1="">฿ 56,000.50</b></p>
+  </section>
+</main>"
+`;
+
+exports[`baseline: snapshot ของแต่ละคอมโพเนนต์ > BaseButton 1`] = `"<button data-v-2d3a2488="" type="button" class="btn btn--primary">ปุ่ม</button>"`;
+
+exports[`baseline: snapshot ของแต่ละคอมโพเนนต์ > ClaimForm (ก่อนกดส่ง) 1`] = `
+"<form data-v-a6b52e52="" class="form">
+  <div data-v-a6b52e52="" class="fields"><label data-v-a6b52e52=""><span data-v-a6b52e52="">รหัสผู้ป่วย</span><input data-v-a6b52e52="" placeholder="เช่น P-1004"></label><label data-v-a6b52e52=""><span data-v-a6b52e52="">โรงพยาบาล</span><input data-v-a6b52e52="" placeholder="เช่น รพ.ตัวอย่าง"></label><label data-v-a6b52e52=""><span data-v-a6b52e52="">จำนวนเงิน (บาท)</span><input data-v-a6b52e52="" type="number" min="0"></label></div>
+  <!--v-if--><button data-v-2d3a2488="" data-v-a6b52e52="" type="submit" class="btn btn--primary">+ เพิ่มเคลม</button>
+</form>"
+`;
+
+exports[`baseline: snapshot ของแต่ละคอมโพเนนต์ > ClaimItem (PENDING) 1`] = `
+"<li data-v-e29c0677="" class="item">
+  <div data-v-e29c0677="" class="main"><strong data-v-e29c0677="">P-1001</strong><span data-v-e29c0677="" class="hospital">รพ.ตัวอย่าง A</span></div>
+  <div data-v-e29c0677="" class="amount">฿ 12,500.00</div><span data-v-e29c0677="" class="badge badge--PENDING">รอตรวจสอบ</span>
+  <div data-v-e29c0677="" class="actions">
+    <!-- v-if / v-else-if: ปุ่มเปลี่ยนตามสถานะ --><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--primary">อนุมัติ</button><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--ghost"> ปฏิเสธ </button><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--danger">ลบ</button>
+  </div>
+</li>"
+`;
+
+exports[`baseline: snapshot ของแต่ละคอมโพเนนต์ > ClaimList (มีรายการ / ว่าง) 1`] = `
+"<ul data-v-1106a014="" class="list">
+  <li data-v-e29c0677="" data-v-1106a014="" class="item">
+    <div data-v-e29c0677="" class="main"><strong data-v-e29c0677="">P-1001</strong><span data-v-e29c0677="" class="hospital">รพ.ตัวอย่าง A</span></div>
+    <div data-v-e29c0677="" class="amount">฿ 12,500.00</div><span data-v-e29c0677="" class="badge badge--PENDING">รอตรวจสอบ</span>
+    <div data-v-e29c0677="" class="actions">
+      <!-- v-if / v-else-if: ปุ่มเปลี่ยนตามสถานะ --><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--primary">อนุมัติ</button><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--ghost"> ปฏิเสธ </button><button data-v-2d3a2488="" data-v-e29c0677="" type="button" class="btn btn--danger">ลบ</button>
+    </div>
+  </li>
+</ul>"
+`;
+
+exports[`baseline: snapshot ของแต่ละคอมโพเนนต์ > ClaimList (มีรายการ / ว่าง) 2`] = `"<div data-v-1106a014="" class="empty">ว่าง</div>"`;
+
+exports[`baseline: snapshot ของแต่ละคอมโพเนนต์ > SearchBox 1`] = `"<input data-v-e65075cf="" class="search" type="search" placeholder="ค้นหา รหัสผู้ป่วย / โรงพยาบาล…">"`;
+
+exports[`baseline: snapshot ของแต่ละคอมโพเนนต์ > ThemeToggle 1`] = `"<div data-v-fe097fd2="" class="theme" role="group" aria-label="โหมดสี"><button data-v-fe097fd2="" class="active" aria-pressed="true">ตามระบบ</button><button data-v-fe097fd2="" class="" aria-pressed="false">สว่าง</button><button data-v-fe097fd2="" class="" aria-pressed="false">มืด</button></div>"`;
