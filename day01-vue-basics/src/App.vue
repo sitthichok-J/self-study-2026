@@ -4,6 +4,7 @@ import { STATUS_LABEL, type Claim, type ClaimStatus } from './types'
 import ClaimForm from './components/ClaimForm.vue'
 import ClaimList from './components/ClaimList.vue'
 import SearchBox from './components/SearchBox.vue'
+import ThemeToggle from './components/ThemeToggle.vue'
 
 // ข้อมูลสมมติทั้งหมด (ไม่ใช่ข้อมูลจริง)
 const claims = ref<Claim[]>([
@@ -51,9 +52,12 @@ const tabs: Array<{ key: ClaimStatus | 'ALL'; label: string }> = [
 
 <template>
   <main class="page">
-    <header>
-      <h1>Claim List</h1>
-      <p class="sub">Day 1 · Vue 3 พื้นฐาน — ref, computed, watch, props/emits, slots (ข้อมูลสมมติ)</p>
+    <header class="head">
+      <div>
+        <h1>Claim List</h1>
+        <p class="sub">Day 1 · Vue 3 พื้นฐาน — ref, computed, watch, props/emits, slots (ข้อมูลสมมติ)</p>
+      </div>
+      <ThemeToggle />
     </header>
 
     <section class="stats">
@@ -97,6 +101,7 @@ const tabs: Array<{ key: ClaimStatus | 'ALL'; label: string }> = [
 
 <style scoped>
 .page { max-width: 880px; margin: 0 auto; padding: 32px 16px 56px; display: flex; flex-direction: column; gap: 20px; }
+.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
 h1 { margin: 0; font-size: 28px; }
 h2 { margin: 0 0 12px; font-size: 16px; }
 .sub { margin: 4px 0 0; color: var(--muted); font-size: 14px; }

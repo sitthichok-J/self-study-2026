@@ -14,8 +14,9 @@
   --bad-bg: #fee4e2;
 }
 
+/* ธีม: system (ตามระบบ) / light / dark — ตั้งผ่าน data-theme บน <html> */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #0f1420;
     --card: #171d2c;
     --surface: #1d2536;
@@ -30,6 +31,22 @@
     --warn-bg: #43310d;
     --bad-bg: #4a1a17;
   }
+}
+
+:root[data-theme='dark'] {
+    --bg: #0f1420;
+    --card: #171d2c;
+    --surface: #1d2536;
+    --text: #e8ecf4;
+    --muted: #9aa5ba;
+    --border: #2b3550;
+    --accent: #5b82f5;
+    --danger: #f97066;
+    --ok: #75e0a7;
+    --ok-bg: #0b3b27;
+    --warn: #fec84b;
+    --warn-bg: #43310d;
+    --bad-bg: #4a1a17;
 }
 
 * { box-sizing: border-box; }
