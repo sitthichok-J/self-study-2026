@@ -1,0 +1,10 @@
+AppendSharing = [true 200 200]
+AppendRealloc = [false 100 200]
+SubSliceShares = [1 99 3 4 5]
+ClosureVars = [0 1 2]
+WriteNilMap = recovered: assignment to entry in nil map
+BuggyFail is nil = false
+FixedFail is nil = true
+DeferOrder = [closure 2 closure 1 closure 0 arg 2 arg 1 arg 0]
+DeferInLoop = [open 0 open 1 open 2 end of func close 2 close 1 close 0]
+DeferPerIteration = [open 0 close 0 open 1 close 1 open 2 close 2]
