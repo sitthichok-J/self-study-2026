@@ -1,0 +1,9 @@
+mutex counter 50x200 = 10000
+atomic counter 50x200 = 10000
+pipeline double = [2 4 6 8]
+fan-in sorted = [1 2 3]
+pool job 1 = 10
+pool job 2 = 20
+pool job 3 = 30
+pool job 4 = 40
+pool job 5 = 50
