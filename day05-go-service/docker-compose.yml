@@ -1,0 +1,16 @@
+# Postgres สำหรับรันเทสต์ integration และลองกับ API
+# docker compose up -d
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: claims
+      POSTGRES_PASSWORD: claims
+      POSTGRES_DB: claims
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U claims"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
