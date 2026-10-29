@@ -1,0 +1,43 @@
+{
+  "api_probes": {
+    "livenessProbe": "/healthz",
+    "readinessProbe": "/healthz",
+    "startupProbe": "/healthz"
+  },
+  "api_replicas": 2,
+  "api_resources": {
+    "limits": {
+      "cpu": "500m",
+      "memory": "256Mi"
+    },
+    "requests": {
+      "cpu": "100m",
+      "memory": "64Mi"
+    }
+  },
+  "compose_ports": {
+    "api": [
+      "8080:8080"
+    ],
+    "db": [
+      "5433:5432"
+    ]
+  },
+  "compose_services": [
+    "api",
+    "db"
+  ],
+  "dockerfile_from": [
+    "golang:1.24",
+    "gcr.io/distroless/static-debian12:nonroot"
+  ],
+  "k8s_kinds": [
+    "ConfigMap/claims-api-config",
+    "Deployment/claims-api",
+    "Namespace/claims",
+    "Secret/claims-db",
+    "Service/claims-api",
+    "Service/postgres",
+    "StatefulSet/postgres"
+  ]
+}
