@@ -3,7 +3,7 @@
 # ต้องรัน `go get github.com/jackc/pgx/v5 && go mod tidy` ใน day05-go-service ก่อน เพื่อให้มี go.sum
 
 # --- stage 1: build ---
-FROM golang:1.24 AS build
+FROM golang:1.25 AS build
 WORKDIR /src
 # copy go.mod/go.sum ก่อน เพื่อให้ layer ของ dependency ถูก cache จนกว่า go.mod จะเปลี่ยน
 COPY go.mod go.sum ./
