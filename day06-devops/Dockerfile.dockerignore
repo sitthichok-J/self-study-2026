@@ -1,0 +1,8 @@
+.git
+**/*_test.go
+testdata
+notes
+scripts
+*.md
+docker-compose.yml
+.env*
