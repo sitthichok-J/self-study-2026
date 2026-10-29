@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claims-api-config
+data:
+  ADDR: ":8080"
+  LOG_LEVEL: "info"
+  SHUTDOWN_TIMEOUT: "10s"
+  DB_MAX_OPEN_CONNS: "10"

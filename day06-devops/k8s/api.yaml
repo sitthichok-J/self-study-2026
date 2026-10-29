@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claims-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: claims-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: claims-api
+    spec:
+      # มากกว่า SHUTDOWN_TIMEOUT (10s) เพื่อให้ graceful shutdown จบก่อน kubelet kill
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: api
+          image: claims-api:dev
+          imagePullPolicy: IfNotPresent   # ใช้ image ที่ `kind load docker-image` เข้าไป
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: claims-api-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: claims-db
+                  key: DATABASE_URL
+          startupProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 2
+            failureThreshold: 15
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests: { cpu: 100m, memory: 64Mi }
+            limits:   { cpu: 500m, memory: 256Mi }
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claims-api
+spec:
+  type: ClusterIP
+  selector:
+    app: claims-api
+  ports:
+    - port: 80
+      targetPort: 8080
