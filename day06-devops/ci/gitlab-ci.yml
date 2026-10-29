@@ -2,7 +2,7 @@
 stages: [lint, test, build]
 
 default:
-  image: golang:1.24
+  image: golang:1.25
   cache:
     key: go-mod
     paths: [.go-cache/]
