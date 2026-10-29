@@ -1,0 +1,50 @@
+# วางที่ <repo>/.github/workflows/ci.yml (GitHub อ่านเฉพาะที่ root ของ repo)
+name: ci
+on:
+  push:
+    branches: [main]
+    paths: ["day05-go-service/**", "day06-devops/**"]
+  pull_request:
+    paths: ["day05-go-service/**", "day06-devops/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: day05-go-service
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: claims
+          POSTGRES_PASSWORD: claims
+          POSTGRES_DB: claims
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U claims -d claims"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: day05-go-service/go.mod
+          cache-dependency-path: day05-go-service/go.sum
+      - name: format
+        run: test -z "$(gofmt -l .)"
+      - name: vet
+        run: go vet -tags pgx ./...
+      - name: unit test (race)
+        run: go test -race -count=1 ./...
+      - name: integration test (postgres)
+        env:
+          TEST_DATABASE_URL: postgres://claims:claims@localhost:5432/claims?sslmode=disable
+        run: go test -race -count=1 -tags 'integration pgx' ./internal/repository
+
+  image:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build image (ยังไม่ push)
+        run: docker build -f day06-devops/Dockerfile -t claims-api:ci day05-go-service

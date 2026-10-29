@@ -1,0 +1,48 @@
+# วางที่ <repo>/.gitlab-ci.yml
+stages: [lint, test, build]
+
+default:
+  image: golang:1.24
+  cache:
+    key: go-mod
+    paths: [.go-cache/]
+
+variables:
+  GOFLAGS: "-mod=readonly"
+  GOMODCACHE: "$CI_PROJECT_DIR/.go-cache"
+
+lint:
+  stage: lint
+  script:
+    - cd day05-go-service
+    - test -z "$(gofmt -l .)"
+    - go vet -tags pgx ./...
+
+test:
+  stage: test
+  services:
+    - name: postgres:16
+      alias: postgres
+  variables:
+    POSTGRES_USER: claims
+    POSTGRES_PASSWORD: claims
+    POSTGRES_DB: claims
+    TEST_DATABASE_URL: postgres://claims:claims@postgres:5432/claims?sslmode=disable
+  script:
+    - cd day05-go-service
+    - go test -race -count=1 ./...
+    - go test -race -count=1 -tags 'integration pgx' ./internal/repository
+
+build-image:
+  stage: build
+  image: docker:27
+  services: [docker:27-dind]
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    # CI_REGISTRY_* เป็นตัวแปรที่ GitLab ใส่ให้เอง ไม่ต้องเก็บ secret ใน repo
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker build -f day06-devops/Dockerfile -t "$CI_REGISTRY_IMAGE/claims-api:$CI_COMMIT_SHORT_SHA" day05-go-service
+    - docker push "$CI_REGISTRY_IMAGE/claims-api:$CI_COMMIT_SHORT_SHA"
