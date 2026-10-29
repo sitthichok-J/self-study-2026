@@ -173,6 +173,10 @@ class TestKubernetes(unittest.TestCase):
     def test_security_context(self):
         s = self.ctr["securityContext"]
         self.assertTrue(s["runAsNonRoot"])
+        # found on a real kind run: the distroless user is the name "nonroot", so kubelet
+        # refuses runAsNonRoot (CreateContainerConfigError) unless a numeric uid is set
+        self.assertIsInstance(s["runAsUser"], int)
+        self.assertGreater(s["runAsUser"], 0)
         self.assertFalse(s["allowPrivilegeEscalation"])
         self.assertTrue(s["readOnlyRootFilesystem"])
         self.assertEqual(s["capabilities"]["drop"], ["ALL"])
