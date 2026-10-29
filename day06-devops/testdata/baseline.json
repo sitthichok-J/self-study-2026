@@ -28,7 +28,7 @@
     "db"
   ],
   "dockerfile_from": [
-    "golang:1.24",
+    "golang:1.25",
     "gcr.io/distroless/static-debian12:nonroot"
   ],
   "k8s_kinds": [
