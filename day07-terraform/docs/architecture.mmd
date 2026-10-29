@@ -1,0 +1,25 @@
+flowchart TB
+  user([User]) --> alb
+  subgraph vpc[VPC 10.20.0.0/16, 2 AZ]
+    direction TB
+    subgraph pub[Public subnets]
+      alb[ALB<br/>SG: 80 and 443 from internet]
+    end
+    subgraph priv[Private subnets]
+      api[ECS Fargate: claims-api<br/>SG: 8080 from ALB only]
+      worker[ECS Fargate: claims-worker<br/>task role: read SQS only]
+      rds[(RDS Postgres<br/>SG: 5432 from app only)]
+    end
+  end
+  subgraph managed[AWS managed services]
+    sqs[[SQS claims queue]]
+    dlq[[SQS DLQ]]
+    s3[(S3 docs bucket<br/>public access blocked)]
+  end
+  alb --> api
+  api --> rds
+  api -->|SendMessage| sqs
+  sqs -->|ReceiveMessage, DeleteMessage| worker
+  sqs -.->|after 3 failed receives| dlq
+  worker --> rds
+  api -->|PutObject| s3
