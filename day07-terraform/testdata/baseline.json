@@ -1,0 +1,66 @@
+{
+  "files": [
+    "README.md",
+    ".gitignore",
+    "docker-compose.yml",
+    "infra/versions.tf",
+    "infra/provider.tf",
+    "infra/variables.tf",
+    "infra/main.tf",
+    "infra/iam.tf",
+    "infra/outputs.tf",
+    "infra/example.tfvars",
+    "infra/modules/queue/main.tf",
+    "infra/modules/queue/variables.tf",
+    "infra/modules/queue/outputs.tf",
+    "infra-vpc/versions.tf",
+    "infra-vpc/provider.tf",
+    "infra-vpc/variables.tf",
+    "infra-vpc/main.tf",
+    "infra-vpc/outputs.tf",
+    "notes/aws-concepts.md",
+    "notes/terraform-cheatsheet.md",
+    "notes/exercises.md",
+    "docs/architecture.mmd",
+    "docs/architecture.png",
+    "scripts/run-all.ps1",
+    "scripts/run-all.bat",
+    "tests/test_terraform.py"
+  ],
+  "iam_allowed_actions": [
+    "sqs:ReceiveMessage",
+    "sqs:DeleteMessage",
+    "sqs:GetQueueAttributes",
+    "sqs:ChangeMessageVisibility",
+    "sqs:SendMessage",
+    "s3:GetObject",
+    "s3:PutObject"
+  ],
+  "resources": {
+    "infra": [
+      "aws_iam_policy",
+      "aws_iam_policy",
+      "aws_iam_role",
+      "aws_iam_role_policy_attachment",
+      "aws_s3_bucket",
+      "aws_s3_bucket_public_access_block",
+      "aws_s3_bucket_server_side_encryption_configuration",
+      "aws_s3_bucket_versioning",
+      "aws_sqs_queue",
+      "aws_sqs_queue"
+    ],
+    "infra-vpc": [
+      "aws_internet_gateway",
+      "aws_route_table",
+      "aws_route_table",
+      "aws_route_table_association",
+      "aws_route_table_association",
+      "aws_security_group",
+      "aws_security_group",
+      "aws_security_group",
+      "aws_subnet",
+      "aws_subnet",
+      "aws_vpc"
+    ]
+  }
+}
