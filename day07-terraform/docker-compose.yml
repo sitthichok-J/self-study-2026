@@ -1,0 +1,16 @@
+# LocalStack จำลอง AWS (S3, SQS, IAM, STS, EC2) ในเครื่อง ไม่เสียเงิน ไม่ต้องมีบัญชี AWS
+# pin เวอร์ชันไว้ เพราะ image รุ่นใหม่ๆ อาจต้องใช้ auth token ให้ตรวจเงื่อนไขของรุ่นล่าสุดก่อนเปลี่ยน
+name: day07
+services:
+  localstack:
+    image: localstack/localstack:3.8
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: s3,sqs,iam,sts,ec2
+      DEBUG: "0"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
