@@ -46,8 +46,8 @@ docker compose down -v
 ## สถานะการตรวจสอบ
 
 - เทสต์ใน `tests/` (28 ข้อ) รันผ่านด้วย `python3 -m unittest discover -s tests` เป็นการตรวจโครงสร้างไฟล์ เช่น S3 ปิด public ครบ 4 ค่า, DLQ มี redrive, IAM ไม่มี wildcard, consumer ส่ง message ไม่ได้, private route table ไม่มี default route, ไม่มี credential ในไฟล์
-- ทุกไฟล์ `.tf` อ่านผ่าน `python-hcl2` (ตรวจ syntax)
-- ยังไม่ได้รัน `terraform validate/plan/apply` กับโค้ดนี้ ให้รัน `scripts\run-all.bat` ผลจะอยู่ใน `notes/run-results.md` (ไฟล์นี้ยังไม่มีจนกว่าจะรัน)
+- รัน `scripts\run-all.bat` บนเครื่องจริง (Docker Desktop, terraform 1.9 ใน container, AWS provider 5.100, LocalStack 3.8) ผ่านครบ 18 ขั้น: fmt, init, validate, plan, apply (10 resources), plan ซ้ำไม่มีการเปลี่ยนแปลง, ตรวจด้วย AWS CLI (public access block, versioning, redrive policy, ส่ง/รับ message, IAM policy), destroy (10 resources) และ VPC validate/plan (15 resources, ไม่ apply) ผลเต็มอยู่ใน `notes/run-results.md`
+- ทดสอบกับ LocalStack เท่านั้น ยังไม่ได้ apply กับ AWS จริง
 
 ## ข้อจำกัด
 
