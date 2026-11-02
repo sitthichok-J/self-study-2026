@@ -1,0 +1,23 @@
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant A as API
+    participant P as Postgres
+    participant R as Relay inside API
+    participant K as Kafka
+    participant W as Worker
+    participant V as Valkey
+    C->>A: POST /claims (Idempotency-Key)
+    A->>P: one transaction: INSERT claim PENDING + INSERT outbox
+    A-->>C: 201 (or 200 replay / 409 conflict)
+    R->>P: SELECT unsent outbox FOR UPDATE SKIP LOCKED
+    R->>K: publish claims.submitted (key = claim id)
+    R->>P: UPDATE outbox SET sent_at
+    K->>W: claims.submitted
+    W->>P: read claim, decide, UPDATE ... WHERE status = PENDING
+    W->>V: DEL claim:id
+    W->>K: commit offset (only after done)
+    Note over W,K: transient error: retry 3x, then claims.submitted.dlq
+    C->>A: GET /claims/id
+    A->>V: GET claim:id (miss -> read Postgres, SET 60s)
+    A-->>C: 200 APPROVED / REJECTED
