@@ -1,30 +1,28 @@
 # Day 8 - Capstone backend: Claim Tracker Lite
 
-Go + Postgres + Valkey (Redis) + Kafka. Fake data only.
+Go + Postgres + Valkey (Redis) + Kafka ใช้ข้อมูลปลอมเท่านั้น
 
-POST /claims saves a claim as PENDING and queues an event. A worker reads the event, decides APPROVED or REJECTED, and the result is read back through GET with a cache in front.
+`POST /claims` บันทึก claim เป็น PENDING แล้วส่ง event เข้าคิว worker อ่าน event มาตัดสินเป็น APPROVED หรือ REJECTED แล้วอ่านผลกลับผ่าน GET โดยมี cache คั่นหน้า
 
-## Status of this code (read first)
+## สถานะของโค้ดนี้ (อ่านก่อน)
 
-| Part | State |
+| ส่วน | สถานะ |
 |---|---|
-| domain / service / consumer / relay / HTTP handler | Unit tested, `go test ./... -race` passes |
-| Postgres / Kafka / Redis adapters, cmd/api, cmd/worker | Compile (`go vet ./...` passes) and run in Docker |
-| End to end (compose, Kafka, outbox, DLQ, shutdown) | `scripts\run-all.ps1` ran on a real machine: 25/25 steps PASS, see `notes/run-results.md` |
+| domain / service / consumer / relay / HTTP handler | มี unit test ผ่าน `go test ./... -race` |
+| adapter ของ Postgres / Kafka / Redis, cmd/api, cmd/worker | compile ผ่าน (`go vet ./...` ผ่าน) และรันใน Docker ได้ |
+| end to end (compose, Kafka, outbox, DLQ, shutdown) | `scripts\run-all.ps1` รันบนเครื่องจริง ผ่าน 25/25 ขั้น ดู `notes/run-results.md` |
 
-`go.sum` is included. Run `go mod tidy` again if you change dependencies.
+สิ่งที่ยังไม่ได้ครอบคลุม: ไม่มี load test, ไม่เคยรันหลาย instance (หลาย API relay หรือหลาย worker), การรันใน Docker ใช้ Kafka broker ตัวเดียว และ Python test เป็นการตรวจแบบ static เท่านั้น
 
-Still not covered: no load test, no multi-instance run (several API relays or several workers), the Docker run used one Kafka broker only, and the Python tests are static checks.
-
-## Run
+## วิธีรัน
 
 ```
 cd day08-backend
-scripts\run-all.bat          # builds, starts everything, checks it, writes notes\run-results.md, then tears down
-scripts\run-all.ps1 -Keep    # same but leaves the stack running
+scripts\run-all.bat          # build, ยกทุกอย่างขึ้น, ตรวจ, เขียน notes\run-results.md แล้ว tear down
+scripts\run-all.ps1 -Keep    # เหมือนกันแต่ปล่อย stack ไว้
 ```
 
-Or by hand (needs `go mod tidy` once to create go.sum):
+หรือรันเองทีละคำสั่ง (ต้อง `go mod tidy` ครั้งเดียวเพื่อสร้าง go.sum):
 
 ```
 docker run --rm -v "%CD%:/src" -w /src golang:1.25 go mod tidy
@@ -35,69 +33,69 @@ curl "localhost:8080/claims?status=APPROVED&limit=10"
 docker compose down -v
 ```
 
-Tests without Docker: `go test ./... -race` (Go 1.24+) and `python -m unittest discover -s tests`.
+เทสต์โดยไม่ใช้ Docker: `go test ./... -race` (Go 1.24+) และ `python -m unittest discover -s tests`
 
 ## API
 
-| Call | Result |
+| คำสั่งเรียก | ผลลัพธ์ |
 |---|---|
-| `POST /claims` body `{"patient_ref":"FAKE-AB12","amount":150000}` + header `Idempotency-Key` | 201 created PENDING. Same key + same body: 200 with `Idempotent-Replayed: true` and the same id. Same key + different body: 409. No key or bad body: 400 |
-| `GET /claims/{id}` | 200, 404, 400 if id is not a uuid |
-| `GET /claims?status=PENDING&limit=20&offset=0` | `{items, limit, offset}`. limit 1..100 (default 20), newest first |
-| `GET /healthz`, `GET /readyz` | liveness (no dependencies) / readiness (pings Postgres) |
+| `POST /claims` body `{"patient_ref":"FAKE-AB12","amount":150000}` + header `Idempotency-Key` | 201 สร้างสำเร็จ สถานะ PENDING ถ้า key เดิม + body เดิม: 200 พร้อม `Idempotent-Replayed: true` และ id เดิม ถ้า key เดิม + body ต่าง: 409 ไม่มี key หรือ body ผิด: 400 |
+| `GET /claims/{id}` | 200, 404, หรือ 400 ถ้า id ไม่ใช่ uuid |
+| `GET /claims?status=PENDING&limit=20&offset=0` | `{items, limit, offset}` limit 1..100 (ค่าเริ่มต้น 20) เรียงใหม่สุดก่อน |
+| `GET /healthz`, `GET /readyz` | liveness (ไม่พึ่ง dependency) / readiness (ping Postgres) |
 
-`amount` is an integer in satang (minor unit), never a float. `patient_ref` must match `FAKE-[A-Z0-9]{3,12}`, enforced in Go and by a CHECK in Postgres, so a real identifier cannot be stored by mistake.
+`amount` เป็นจำนวนเต็มหน่วยสตางค์ (หน่วยย่อย) ไม่ใช้ float `patient_ref` ต้องตรงกับ `FAKE-[A-Z0-9]{3,12}` ตรวจทั้งใน Go และด้วย CHECK ใน Postgres เพื่อไม่ให้เผลอเก็บรหัสจริงลงไป
 
-Decision rule (simulated): amount above 5,000,000 satang (50,000 THB) is REJECTED (`over_limit`), otherwise APPROVED. `FAKE-POISON` always fails evaluation, to demo retry and DLQ.
+กฎการตัดสิน (จำลอง): amount เกิน 5,000,000 สตางค์ (50,000 บาท) จะ REJECTED (`over_limit`) นอกนั้น APPROVED ส่วน `FAKE-POISON` จะล้มตอนประเมินทุกครั้ง ไว้สาธิต retry และ DLQ
 
-## Layout
+## โครงสร้าง
 
 ```
 cmd/api        REST + outbox relay          cmd/worker   Kafka consumer
-internal/domain    Claim, status rules, Evaluate (no I/O)
+internal/domain    Claim, กฎสถานะ, Evaluate (ไม่มี I/O)
 internal/service   Claims (submit/get/list/process), Consumer (retry+DLQ), Relay (outbox)
-internal/port      interfaces: ClaimRepository, EventPublisher, Cache
+internal/port      interface: ClaimRepository, EventPublisher, Cache
 internal/adapter   http (net/http) / postgres (pgx) / kafka (kafka-go) / redis (go-redis)
-internal/memory    in-memory fakes of the ports, used by tests
-migrations/        golang-migrate files    docs/  sequence diagram
+internal/memory    ตัวปลอมแบบ in-memory ของ port ใช้ในเทสต์
+migrations/        ไฟล์ golang-migrate    docs/  sequence diagram
 ```
 
-service depends only on `port` interfaces, so every use case is tested with fakes. A Python test checks that service and domain never import an adapter.
+service พึ่งพาเฉพาะ interface ใน `port` ทุก use case จึงเทสต์ด้วยตัวปลอมได้ และมี Python test ตรวจว่า service กับ domain ไม่เคย import adapter
 
 ![sequence](docs/sequence.png)
 
-## Design decisions
+## การตัดสินใจเรื่องดีไซน์
 
-- **Outbox instead of dual write.** Saving to Postgres and then calling Kafka can die in the middle. So the API writes the claim and an `outbox` row in one transaction, and a relay (goroutine inside the API) publishes unsent rows. Crash after publish but before marking sent means the event goes out twice, which is fine because the consumer is idempotent.
-- **Idempotency key.** Unique index on `idempotency_key` plus a hash of the request. `INSERT ... ON CONFLICT DO NOTHING` makes concurrent duplicates safe (tested with 20 parallel submits in the fake).
-- **Consumer is idempotent.** It re-reads the claim, skips anything that is no longer PENDING, and updates with `WHERE status = 'PENDING'`. The event holds only the claim id, never a copy of the data.
-- **Retry then DLQ.** Up to 3 attempts with 0.5s / 1s backoff for transient errors. Permanent errors (bad payload, unknown claim) go straight to `claims.submitted.dlq` with reason, original topic, key and value. A message counts as done once it is processed or parked.
-- **Offset committed after the work.** If the handler still fails (for example the DLQ publish fails) the adapter retries the same message instead of moving on, so a later commit cannot skip it. On SIGTERM the in-flight message finishes first.
-- **Cache is best effort.** Valkey errors are logged and treated as a miss. Claim by id: 60s TTL, deleted when the worker changes the status. Lists: 10s TTL, not invalidated.
-- **kafka-go** chosen for a small API. franz-go would be the choice for more control and speed. Kafka runs in KRaft mode (no ZooKeeper), topic auto-create is off and `kafka-init` creates 3 partitions + 1 for the DLQ.
-- **pgx directly** (no sqlc) to keep the queries visible. About 6 queries.
+- **ใช้ outbox แทน dual write** บันทึกลง Postgres แล้วค่อยเรียก Kafka อาจตายกลางทางได้ API จึงเขียน claim กับแถว `outbox` ใน transaction เดียว แล้วให้ relay (goroutine ใน API) ส่งแถวที่ยังไม่ได้ส่ง ถ้าล้มหลังส่งแต่ก่อนมาร์กว่าส่งแล้ว event จะออกสองครั้ง ซึ่งไม่เป็นไรเพราะ consumer เป็น idempotent
+- **Idempotency key** ใช้ unique index บน `idempotency_key` บวก hash ของ request และ `INSERT ... ON CONFLICT DO NOTHING` ทำให้ request ซ้ำที่เข้ามาพร้อมกันปลอดภัย (ทดสอบด้วยการ submit 20 ตัวขนานกันใน fake)
+- **Consumer เป็น idempotent** อ่าน claim ใหม่ทุกครั้ง ข้ามอันที่ไม่ใช่ PENDING แล้ว และอัปเดตด้วย `WHERE status = 'PENDING'` event เก็บแค่ id ของ claim ไม่เก็บสำเนาข้อมูล
+- **Retry แล้วค่อย DLQ** ลองสูงสุด 3 ครั้ง backoff 0.5 วิ / 1 วิ สำหรับ error ชั่วคราว ส่วน error ถาวร (payload เสีย, ไม่รู้จัก claim) ไป `claims.submitted.dlq` ทันที พร้อมเหตุผล topic เดิม key และ value ข้อความถือว่าเสร็จเมื่อประมวลผลสำเร็จหรือถูกพักไว้ใน DLQ แล้ว
+- **Commit offset หลังทำงานเสร็จ** ถ้า handler ยังล้ม (เช่น ส่งเข้า DLQ ไม่ได้) adapter จะลองข้อความเดิมซ้ำแทนที่จะข้ามไป เพื่อไม่ให้ commit ครั้งถัดไปข้ามข้อความนั้น เมื่อได้ SIGTERM ข้อความที่กำลังทำอยู่จะทำให้เสร็จก่อน
+- **Cache เป็นแบบ best effort** error จาก Valkey ถูก log และนับเป็น miss claim ตาม id: TTL 60 วินาที และลบทิ้งเมื่อ worker เปลี่ยนสถานะ รายการ list: TTL 10 วินาที ไม่ invalidate
+- **เลือก kafka-go** เพราะ API เล็ก ถ้าอยากคุมได้มากและเร็วกว่าให้ใช้ franz-go Kafka รันโหมด KRaft (ไม่มี ZooKeeper) ปิด topic auto-create และให้ `kafka-init` สร้าง 3 partition บวก 1 สำหรับ DLQ
+- **ใช้ pgx ตรงๆ** (ไม่ใช้ sqlc) เพื่อให้เห็น query ชัด มีประมาณ 6 query
 
-## Known limits
+## ข้อจำกัดที่รู้
 
-- Relay runs inside every API instance. It is safe (SKIP LOCKED) but polling every 500 ms is not efficient. A separate relay process or Postgres LISTEN/NOTIFY, or CDC, would be next.
-- Kafka delivery is at-least-once. There is no exactly-once. The idempotent consumer is what makes that acceptable.
-- A poison message blocks its partition while it is retried. After the 3 attempts it moves to the DLQ. Nothing reads the DLQ yet, there is no replay tool.
-- A poison claim stays PENDING forever. There is no `FAILED` status or manual review flow.
-- List cache can be up to 10s stale after a new claim. By-id cache has a tiny race: a read that started before the worker update can write the old value after the worker deleted the key, stale up to 60s.
-- Pagination is limit/offset. It gets slow on deep pages and can skip or repeat rows when data changes. Keyset pagination (created_at, id) would fix this.
-- Idempotency keys are global, not per client, and never expire.
-- No auth, no rate limit, no metrics or tracing (Day 10). Compose uses throw-away DB credentials for local use only.
-- Not done from the optional list: gRPC `GetClaim`, testcontainers integration tests. The compose run script covers the integration path instead.
+- Relay รันอยู่ในทุก API instance ปลอดภัย (SKIP LOCKED) แต่การ poll ทุก 500 ms ไม่ประหยัด ขั้นต่อไปคือแยก relay เป็นอีก process หรือใช้ Postgres LISTEN/NOTIFY หรือ CDC
+- Kafka ส่งแบบ at-least-once ไม่มี exactly-once ที่ยอมรับได้เพราะ consumer เป็น idempotent
+- poison message จะบล็อก partition ของมันระหว่าง retry พอครบ 3 ครั้งจึงย้ายไป DLQ ตอนนี้ยังไม่มีอะไรอ่าน DLQ และไม่มีเครื่องมือ replay
+- poison claim จะค้างเป็น PENDING ตลอด ไม่มีสถานะ `FAILED` และไม่มี flow ให้คนตรวจเอง
+- cache ของ list อาจเก่าได้ถึง 10 วินาทีหลังมี claim ใหม่ ส่วน cache แบบตาม id มี race เล็กน้อย: read ที่เริ่มก่อน worker อัปเดต อาจเขียนค่าเก่ากลับหลัง worker ลบ key ไปแล้ว ทำให้เก่าได้ถึง 60 วินาที
+- Pagination เป็น limit/offset หน้าลึกจะช้า และข้ามหรือซ้ำแถวได้ถ้าข้อมูลเปลี่ยน แก้ได้ด้วย keyset pagination (created_at, id)
+- Idempotency key เป็น global ไม่แยกตาม client และไม่หมดอายุ
+- ไม่มี auth, rate limit, metrics หรือ tracing (ไว้ Day 10) compose ใช้ credential ของ DB แบบทิ้งได้ สำหรับรันในเครื่องเท่านั้น
+- ที่ไม่ได้ทำจากรายการ optional: gRPC `GetClaim`, integration test ด้วย testcontainers ใช้สคริปต์ compose run ครอบ integration path แทน
 
-## Tests
+## เทสต์
 
-| Where | What |
+| ที่ไหน | ตรวจอะไร |
 |---|---|
-| `internal/domain` | validation table, transitions, decision rule, hash, uuid |
-| `internal/service` | idempotency (same / different / concurrent), outbox relay (broker down, ordering), process idempotent on redelivery, retry then success, poison to DLQ, bad payload, permanent error not retried, DLQ failure not committed, shutdown stops retrying, cache hit/invalidate/outage, pagination |
-| `internal/adapter/http` | status codes, body size limit, no internal error details leaked, readyz 503, liveness independent of DB |
-| `internal/baseline` + `testdata/baseline.json` | snapshot of decisions, transitions, limits, topics, HTTP codes. If it fails on purpose: `go test ./internal/baseline -update` |
-| `tests/test_infra.py` | compose, migration vs Go constants, Dockerfile, import rules, commit-after-handler, fake-data-only |
-| `scripts/run-all.ps1` | the real thing: compile, up, API behaviour, async approve/reject, cache, DLQ, Kafka down then up, graceful exit |
+| `internal/domain` | validation table, transition, กฎการตัดสิน, hash, uuid |
+| `internal/service` | idempotency (เดิม / ต่าง / พร้อมกัน), outbox relay (broker ล่ม, ลำดับ), process แบบ idempotent เมื่อ redeliver, retry แล้วสำเร็จ, poison ไป DLQ, payload เสีย, error ถาวรไม่ retry, DLQ ล้มแล้วไม่ commit, shutdown หยุด retry, cache hit/invalidate/ล่ม, pagination |
+| `internal/adapter/http` | status code, จำกัดขนาด body, ไม่รั่วรายละเอียด error ภายใน, readyz 503, liveness ไม่ขึ้นกับ DB |
+| `internal/baseline` + `testdata/baseline.json` | snapshot ของการตัดสิน, transition, ขีดจำกัด, topic, HTTP code ถ้าตั้งใจให้ล้ม: `go test ./internal/baseline -update` |
+| `tests/test_infra.py` | compose, migration เทียบกับค่าคงที่ใน Go, Dockerfile, กฎ import, commit หลัง handler, ใช้ข้อมูลปลอมเท่านั้น |
+| `scripts/run-all.ps1` | ของจริง: compile, up, พฤติกรรม API, approve/reject แบบ async, cache, DLQ, Kafka ล่มแล้วกลับมา, ปิดแบบ graceful |
 
-Mutation check done in the sandbox: breaking the over-limit rule, the idempotency conflict check, the "already processed" skip, the permanent-error rule, or cache invalidation each makes tests fail.
+Mutation check ที่ทำใน sandbox: ถ้าทำลายกฎ over-limit, การเช็ก idempotency conflict, การข้ามอันที่ "ประมวลผลแล้ว", กฎ error ถาวร หรือการ invalidate cache อย่างใดอย่างหนึ่ง เทสต์จะล้มทุกครั้ง
