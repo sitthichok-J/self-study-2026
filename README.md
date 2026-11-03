@@ -12,5 +12,6 @@
 | 6 | [day06-devops](day06-devops) | Docker, Compose, Kubernetes, CI สำหรับ API ของ Day 5 (pipeline ตรวจแบบ static ด้วย actionlint ยังไม่เคยรันจริง) |
 | 7 | [day07-terraform](day07-terraform) | Terraform + AWS: S3, SQS + DLQ, IAM, VPC รันบน LocalStack ยังไม่ได้ apply กับ AWS จริง |
 | 8 | [day08-backend](day08-backend) | Capstone backend: Claim Tracker Lite (Go, Postgres, Valkey, Kafka, outbox, DLQ) รันจริงผ่าน 25/25 ขั้น |
+| 9 | [day09-frontend-gateway](day09-frontend-gateway) | Capstone frontend + gateway + CI/CD: Vue 3 + Kong + pipeline ต่อกับ backend ของ Day 8 รันจริงผ่าน 32/32 ขั้น (k8s และ pipeline บน GitHub ยังไม่เคยรัน) |
 
-Day 9-10 (frontend/gateway/CI/CD และ observability/security) ยังไม่ได้ทำ
+Day 10 (observability/security) ยังไม่ได้ทำ
