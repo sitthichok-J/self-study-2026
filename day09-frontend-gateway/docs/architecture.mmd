@@ -1,0 +1,22 @@
+flowchart LR
+  B["Browser<br/>Vue 3 SPA"]
+  subgraph edge["ด่านหน้า"]
+    W["web (nginx)<br/>:3000 static + SPA fallback"]
+    G["gateway (Kong)<br/>:8000 /api<br/>CORS, rate limit 120/min, body 1 MB"]
+  end
+  subgraph be["backend (Day 8)"]
+    A["api<br/>REST + outbox relay"]
+    K[("Kafka<br/>claims.submitted")]
+    WK["worker<br/>consumer, retry, DLQ"]
+    P[("Postgres<br/>claims, outbox")]
+    V[("Valkey<br/>cache")]
+  end
+  B -- "โหลดหน้าเว็บ" --> W
+  B -- "fetch /api/..." --> G
+  G -- "strip /api" --> A
+  A --> P
+  A <--> V
+  A -- "relay publish" --> K
+  K --> WK
+  WK --> P
+  WK -- "ลบ cache" --> V

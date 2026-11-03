@@ -1,0 +1,8 @@
+flowchart LR
+  PR["push / pull request"] --> BE["backend<br/>gofmt, go vet, go test -race"]
+  PR --> WE["web<br/>vue-tsc, vitest, vite build"]
+  PR --> ST["static<br/>python unittest (Day 8 + Day 9)"]
+  BE --> E["e2e-kind<br/>build 3 images, kind load,<br/>deploy-k8s.sh, smoke-k8s.sh"]
+  WE --> E
+  ST --> E
+  E -- "เฉพาะ push เข้า main" --> PUB["publish<br/>push image ไป ghcr.io<br/>tag = commit sha"]
