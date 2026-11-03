@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: worker, namespace: claims, labels: { app: worker } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: worker } }
+  template:
+    metadata: { labels: { app: worker } }
+    spec:
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 30 # ให้ข้อความที่กำลังทำอยู่เสร็จก่อนปิด
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: worker
+          image: claims-worker:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: db, key: url } }
+            - { name: REDIS_ADDR, value: "valkey:6379" }
+            - { name: KAFKA_BROKERS, value: "kafka:9092" }
+            - { name: KAFKA_GROUP, value: "claims-worker" }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+          resources: { requests: { cpu: 50m, memory: 32Mi }, limits: { memory: 128Mi } }

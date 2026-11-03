@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: web, namespace: claims, labels: { app: web } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: web } }
+  template:
+    metadata: { labels: { app: web } }
+    spec:
+      enableServiceLinks: false
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: web
+          image: claims-web:local
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 8080 }]
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 5
+          securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: [ALL] } }
+          resources: { requests: { cpu: 10m, memory: 16Mi }, limits: { memory: 64Mi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: web, namespace: claims }
+spec:
+  selector: { app: web }
+  ports: [{ port: 3000, targetPort: 8080 }]

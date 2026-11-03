@@ -1,0 +1,39 @@
+# งานครั้งเดียว: สร้าง topic และรัน migration (ConfigMap "migrations" สร้างจาก ../day08-backend/migrations ตอน deploy)
+apiVersion: batch/v1
+kind: Job
+metadata: { name: kafka-init, namespace: claims }
+spec:
+  backoffLimit: 20
+  template:
+    spec:
+      enableServiceLinks: false
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: apache/kafka:3.8.0
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              B=kafka:9092
+              /opt/kafka/bin/kafka-topics.sh --bootstrap-server $B --create --if-not-exists --topic claims.submitted --partitions 3 --replication-factor 1
+              /opt/kafka/bin/kafka-topics.sh --bootstrap-server $B --create --if-not-exists --topic claims.submitted.dlq --partitions 1 --replication-factor 1
+---
+apiVersion: batch/v1
+kind: Job
+metadata: { name: migrate, namespace: claims }
+spec:
+  backoffLimit: 20
+  template:
+    spec:
+      enableServiceLinks: false
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: migrate/migrate:v4.18.1
+          args: ["-path=/migrations", "-database=$(DATABASE_URL)", "up"]
+          env:
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: db, key: url } }
+          volumeMounts: [{ name: migrations, mountPath: /migrations, readOnly: true }]
+      volumes: [{ name: migrations, configMap: { name: migrations } }]

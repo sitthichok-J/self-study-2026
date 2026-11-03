@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: api, namespace: claims, labels: { app: api } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: api } }
+  template:
+    metadata: { labels: { app: api } }
+    spec:
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 30
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: api
+          image: claims-api:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: db, key: url } }
+            - { name: REDIS_ADDR, value: "valkey:6379" }
+            - { name: KAFKA_BROKERS, value: "kafka:9092" }
+            - { name: HTTP_ADDR, value: ":8080" }
+          ports: [{ containerPort: 8080 }]
+          readinessProbe:
+            httpGet: { path: /readyz, port: 8080 }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 10
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+          resources: { requests: { cpu: 50m, memory: 32Mi }, limits: { memory: 128Mi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: api, namespace: claims }
+spec:
+  selector: { app: api }
+  ports: [{ port: 8080 }]
