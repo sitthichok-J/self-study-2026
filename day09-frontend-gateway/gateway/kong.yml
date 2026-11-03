@@ -1,0 +1,45 @@
+# Kong DB-less: ไฟล์นี้คือ config ทั้งหมดของ gateway (ไม่มีฐานข้อมูล ไม่เปิด Admin API)
+_format_version: "3.0"
+
+services:
+  - name: claims-api
+    url: http://api:8080
+    connect_timeout: 3000
+    read_timeout: 10000
+    write_timeout: 10000
+    retries: 0 # POST ที่ retry เองหลัง timeout อาจซ้ำ ปล่อยให้ client ส่งซ้ำพร้อม Idempotency-Key
+    routes:
+      - name: claims-api
+        paths: ["/api"]
+        strip_path: true # /api/claims -> /claims
+        methods: [GET, POST, OPTIONS]
+        preserve_host: false
+
+    plugins:
+      - name: cors
+        config:
+          origins: ["http://localhost:3000"]
+          methods: [GET, POST, OPTIONS]
+          headers: [Accept, Content-Type, Idempotency-Key]
+          exposed_headers: [Idempotent-Replayed, Retry-After]
+          credentials: false
+          max_age: 3600
+          preflight_continue: false
+
+      # จำกัดต่อ IP: 120 ครั้ง/นาที (หน้า detail poll ทุก 2 วินาที = 30 ครั้ง/นาที)
+      # policy local = นับในหน่วยความจำของ Kong แต่ละ instance ถ้ารันหลายตัวต้องใช้ redis
+      - name: rate-limiting
+        config:
+          minute: 120
+          limit_by: ip
+          policy: local
+          fault_tolerant: true
+          hide_client_headers: false
+          error_code: 429
+          error_message: API rate limit exceeded
+
+      # ตรงกับ MaxBytesReader 1 MiB ของ backend แต่ตัดที่หน้าด่านก่อน
+      - name: request-size-limiting
+        config:
+          allowed_payload_size: 1
+          size_unit: megabytes
