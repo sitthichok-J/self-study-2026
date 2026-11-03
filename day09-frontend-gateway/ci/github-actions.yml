@@ -1,0 +1,93 @@
+# วางที่ <repo>/.github/workflows/day09.yml (GitHub อ่านเฉพาะที่ root ของ repo)
+# secret อยู่ใน GitHub Secrets เท่านั้น: ใช้ GITHUB_TOKEN สำหรับ ghcr และ K8S_DB_PASSWORD (ไม่ตั้งก็ได้ จะสุ่มให้)
+name: day09
+on:
+  push:
+    branches: [main]
+    paths: ["day08-backend/**", "day09-frontend-gateway/**", ".github/workflows/day09.yml"]
+  pull_request:
+    paths: ["day08-backend/**", "day09-frontend-gateway/**", ".github/workflows/day09.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: day09-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: day08-backend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: day08-backend/go.mod, cache-dependency-path: day08-backend/go.sum }
+      - run: test -z "$(gofmt -l .)"
+      - run: go vet ./...
+      - run: go test ./... -race
+
+  web:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: day09-frontend-gateway/web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: day09-frontend-gateway/web/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pyyaml
+      - run: python -m unittest discover -s day08-backend/tests
+      - run: python -m unittest discover -s day09-frontend-gateway/tests
+
+  e2e-kind:
+    needs: [backend, web, static]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: helm/kind-action@v1
+        with: { cluster_name: claims }
+      - name: build images
+        run: |
+          docker build -t claims-api:local    --build-arg CMD=api    day08-backend
+          docker build -t claims-worker:local --build-arg CMD=worker day08-backend
+          docker build -t claims-web:local    day09-frontend-gateway/web
+      - name: load images into kind
+        run: kind load docker-image claims-api:local claims-worker:local claims-web:local --name claims
+      - name: deploy
+        env: { DB_PASSWORD: "${{ secrets.K8S_DB_PASSWORD }}" }
+        run: day09-frontend-gateway/scripts/deploy-k8s.sh
+      - name: smoke test ผ่าน gateway
+        run: day09-frontend-gateway/scripts/smoke-k8s.sh
+      - name: logs เมื่อล้ม
+        if: failure()
+        run: |
+          kubectl -n claims get pods -o wide
+          kubectl -n claims describe pods | tail -80
+          for d in api worker gateway; do echo "== $d"; kubectl -n claims logs deploy/$d --tail=60 || true; done
+
+  publish:
+    needs: [e2e-kind]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
+      - name: ตั้งชื่อ image เป็นตัวพิมพ์เล็ก
+        run: echo "OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+      - uses: docker/build-push-action@v6
+        with: { context: day08-backend, build-args: "CMD=api", push: true, tags: "ghcr.io/${{ env.OWNER }}/claims-api:${{ github.sha }}" }
+      - uses: docker/build-push-action@v6
+        with: { context: day08-backend, build-args: "CMD=worker", push: true, tags: "ghcr.io/${{ env.OWNER }}/claims-worker:${{ github.sha }}" }
+      - uses: docker/build-push-action@v6
+        with: { context: day09-frontend-gateway/web, push: true, tags: "ghcr.io/${{ env.OWNER }}/claims-web:${{ github.sha }}" }
