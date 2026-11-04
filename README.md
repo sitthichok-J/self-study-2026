@@ -13,5 +13,4 @@
 | 7 | [day07-terraform](day07-terraform) | Terraform + AWS: S3, SQS + DLQ, IAM, VPC รันบน LocalStack ยังไม่ได้ apply กับ AWS จริง |
 | 8 | [day08-backend](day08-backend) | Capstone backend: Claim Tracker Lite (Go, Postgres, Valkey, Kafka, outbox, DLQ) รันจริงผ่าน 25/25 ขั้น |
 | 9 | [day09-frontend-gateway](day09-frontend-gateway) | Capstone frontend + gateway + CI/CD: Vue 3 + Kong + pipeline ต่อกับ backend ของ Day 8 รันจริงผ่าน 32/32 ขั้น (k8s และ pipeline บน GitHub ยังไม่เคยรัน) |
-
-Day 10 (observability/security) ยังไม่ได้ทำ
+| 10 | [day10-observability-security](day10-observability-security) | Observability + Security: Prometheus, Grafana, Jaeger, JWT, ตรวจเจ้าของข้อมูล, สแกนช่องโหว่และแก้แล้ว รันจริงผ่าน 57/57 ขั้น (UI/Kong ของ Day 9 ยังไม่ส่ง token) |
