@@ -14,3 +14,4 @@
 | 8 | [day08-backend](day08-backend) | Capstone backend: Claim Tracker Lite (Go, Postgres, Valkey, Kafka, outbox, DLQ) รันจริงผ่าน 25/25 ขั้น |
 | 9 | [day09-frontend-gateway](day09-frontend-gateway) | Capstone frontend + gateway + CI/CD: Vue 3 + Kong + pipeline ต่อกับ backend ของ Day 8 รันจริงผ่าน 32/32 ขั้น (k8s และ pipeline บน GitHub ยังไม่เคยรัน) |
 | 10 | [day10-observability-security](day10-observability-security) | Observability + Security: Prometheus, Grafana, Jaeger, JWT, ตรวจเจ้าของข้อมูล, สแกนช่องโหว่และแก้แล้ว รันจริงผ่าน 57/57 ขั้น (UI/Kong ของ Day 9 ยังไม่ส่ง token) |
+| 11 | [day11-auth-gateway](day11-auth-gateway) | Auth ครบวงจร: login ใน Vue, refresh token หมุนเวียน, Kong ตรวจ JWT + rate limit + TLS รันจริงผ่าน 86/86 ขั้น (JWT ยังเป็น secret ร่วม HS256, ยังไม่ได้ลอง UI ด้วยมือ) |
