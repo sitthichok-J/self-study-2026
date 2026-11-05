@@ -1,0 +1,118 @@
+# วางที่ <repo>/.github/workflows/day13.yml (GitHub อ่านเฉพาะที่ root ของ repo) ไฟล์ใน ci/ ของโฟลเดอร์ Day 13 เป็นสำเนาไว้ให้เทสต์ static ตรวจ
+# ไม่มี secret ในไฟล์นี้ ใช้แค่ GITHUB_TOKEN ที่ GitHub ออกให้ต่อรอบ และสิทธิ์เป็น read อย่างเดียว (ไม่ push image ไปที่ไหน)
+name: day13
+on:
+  push:
+    branches: [main]
+    paths: ["day13-revocation-ui-cicd/**", ".github/workflows/day13.yml"]
+  pull_request:
+    paths: ["day13-revocation-ui-cicd/**", ".github/workflows/day13.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: day13-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP: day13-revocation-ui-cicd
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults: { run: { working-directory: day13-revocation-ui-cicd } }
+    # valkey จริงสำหรับเทสต์ adapter (บัญชีเพิกถอน token + rate limit ต่อ user): REDIS_TEST_ADDR เปิดเทสต์พวกนี้
+    services:
+      valkey:
+        image: valkey/valkey:8-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "valkey-cli ping" --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      REDIS_TEST_ADDR: localhost:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: day13-revocation-ui-cicd/go.mod, cache-dependency-path: day13-revocation-ui-cicd/go.sum }
+      - run: test -z "$(gofmt -l .)"
+      - run: go vet ./...
+      - name: adapter valkey (ต้องไม่ถูก skip)
+        run: go test -race -count=1 -v -run 'Revoker|Limiter' ./internal/adapter/redis
+      - run: go test ./... -race -count=1
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults: { run: { working-directory: day13-revocation-ui-cicd/web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: day13-revocation-ui-cicd/web/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pyyaml
+      - run: python -m unittest discover -s day13-revocation-ui-cicd/tests -v
+
+  images:
+    needs: [backend, web, static]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: api, context: day13-revocation-ui-cicd, args: "CMD=api" }
+          - { name: worker, context: day13-revocation-ui-cicd, args: "CMD=worker" }
+          - { name: web, context: day13-revocation-ui-cicd/web, args: "VITE_API_BASE=http://localhost:8000/api" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          build-args: ${{ matrix.args }}
+          load: true
+          push: false
+          tags: day13-${{ matrix.name }}:ci
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+      # สแกน image ที่เพิ่ง build: HIGH/CRITICAL ที่มี fix แล้วทำให้ job ล้ม
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: day13-${{ matrix.name }}:ci
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          scanners: vuln
+          exit-code: "1"
+
+  scans:
+    needs: [backend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: day13-revocation-ui-cicd/go.mod, cache-dependency-path: day13-revocation-ui-cicd/go.sum }
+      - name: govulncheck
+        working-directory: day13-revocation-ui-cicd
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...
+      - name: gitleaks (หา secret ในโค้ด)
+        run: docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.21.2 detect --source "/repo/${APP}" --no-git --redact --verbose
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: day13-revocation-ui-cicd
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          scanners: vuln,secret,misconfig
+          exit-code: "1"

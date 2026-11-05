@@ -1,0 +1,151 @@
+{
+  "auth_http": {
+    "csrf_header": "X-Requested-With=claims-web",
+    "expires_in": 600,
+    "login_response_keys": [
+      "access_token",
+      "expires_in",
+      "token_type"
+    ],
+    "password_hash_form": "pbkdf2-sha256, min iterations 600000",
+    "password_min_len": 12,
+    "refresh_cookie": {
+      "http_only": true,
+      "max_age": 43200,
+      "name": "refresh_token",
+      "path": "/api/auth",
+      "same_site": "3",
+      "secure": true
+    },
+    "status": {
+      "login GET": 405,
+      "login bad body": 400,
+      "login ok": 200,
+      "login unknown user": 401,
+      "login wrong password": 401,
+      "logout ok": 204,
+      "logout without csrf header": 403,
+      "refresh after logout": 401,
+      "refresh after reuse (new one)": 401,
+      "refresh ok": 200,
+      "refresh reused token": 401,
+      "refresh without cookie": 401,
+      "refresh without csrf header": 403
+    },
+    "token_type": "Bearer"
+  },
+  "day13_http": {
+    "decision_reasons": [
+      "needs_review",
+      "manual_approved",
+      "manual_rejected"
+    ],
+    "http": {
+      "429 has Retry-After": true,
+      "approve as owner (not staff)": 403,
+      "approve as staff": 200,
+      "carol 4 calls (limit 3)": [
+        200,
+        200,
+        200,
+        429
+      ],
+      "dave unaffected": 200,
+      "list after revoke": 401,
+      "list before revoke": 200,
+      "list fresh token same user": 200,
+      "list when blocklist is down": 503,
+      "reject after approve": 409
+    },
+    "jwt_requires": [
+      "jti"
+    ],
+    "user_rate_limit_default": 100
+  },
+  "decisions": {
+    "FAKE-AB12@1": "APPROVED/ok",
+    "FAKE-AB12@2000000": "APPROVED/ok",
+    "FAKE-AB12@2000001": "PENDING/needs_review",
+    "FAKE-AB12@5000000": "PENDING/needs_review",
+    "FAKE-AB12@5000001": "REJECTED/over_limit",
+    "FAKE-POISON@1": "error:transient"
+  },
+  "http": {
+    "GET bad id": 400,
+    "GET healthz": 200,
+    "GET list": 200,
+    "GET list bad status": 400,
+    "GET list limit too large": 400,
+    "GET readyz": 200,
+    "GET unknown id": 404,
+    "POST conflict": 409,
+    "POST create": 201,
+    "POST no key": 400,
+    "POST real-looking ref": 400,
+    "POST replay": 200
+  },
+  "jwt": {
+    "alg": "RS256 only",
+    "min_rsa_bits": 2048,
+    "roles": [
+      "user",
+      "staff"
+    ]
+  },
+  "limits": {
+    "claim_cache_ttl": "1m0s",
+    "default_page": 20,
+    "list_cache_ttl": "10s",
+    "max_amount_satang": 1000000000,
+    "max_page": 100,
+    "over_limit_satang": 5000000,
+    "review_limit_satang": 2000000
+  },
+  "metric_families": {
+    "auth_failures_total": "counter",
+    "authz_denied_total": "counter",
+    "claims_decided_total": "counter",
+    "claims_submitted_total": "counter",
+    "consumer_messages_total": "counter",
+    "go_goroutines": "gauge",
+    "go_heap_alloc_bytes": "gauge",
+    "http_panics_total": "counter",
+    "http_request_duration_seconds": "histogram",
+    "http_requests_in_flight": "gauge",
+    "http_requests_total": "counter",
+    "outbox_publish_total": "counter",
+    "trace_export_total": "counter",
+    "trace_spans_dropped_total": "counter"
+  },
+  "security_headers": {
+    "Cache-Control": "no-store",
+    "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+    "Referrer-Policy": "no-referrer",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY"
+  },
+  "security_http": {
+    "GET /metrics on api port": 404,
+    "GET healthz without token": 200,
+    "GET list without token": 401,
+    "GET other user's claim": 404,
+    "GET own claim": 200,
+    "POST without token": 401,
+    "same idempotency key, other user": 201
+  },
+  "topics": [
+    "claims.submitted",
+    "claims.submitted.dlq"
+  ],
+  "transitions": {
+    "APPROVED-\u003eAPPROVED": false,
+    "APPROVED-\u003ePENDING": false,
+    "APPROVED-\u003eREJECTED": false,
+    "PENDING-\u003eAPPROVED": true,
+    "PENDING-\u003ePENDING": false,
+    "PENDING-\u003eREJECTED": true,
+    "REJECTED-\u003eAPPROVED": false,
+    "REJECTED-\u003ePENDING": false,
+    "REJECTED-\u003eREJECTED": false
+  }
+}

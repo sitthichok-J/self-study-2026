@@ -1,0 +1,7 @@
+.env
+*.log
+notes/*.tmp
+certs/
+gateway/.rendered/
+keys/
+__pycache__/
