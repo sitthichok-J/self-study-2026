@@ -1,0 +1,139 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`baseline > กฎตรวจฟอร์ม 1`] = `
+[
+  {
+    "a": "1500",
+    "errors": {},
+    "r": "FAKE-AB12",
+    "satang": 150000,
+  },
+  {
+    "a": "0.29",
+    "errors": {},
+    "r": "FAKE-AB12",
+    "satang": 29,
+  },
+  {
+    "a": "10000000",
+    "errors": {},
+    "r": "FAKE-AB12",
+    "satang": 1000000000,
+  },
+  {
+    "a": "10000000.01",
+    "errors": {
+      "amount": "จำนวนเงินเกินที่ระบบรับได้",
+    },
+    "r": "FAKE-AB12",
+    "satang": null,
+  },
+  {
+    "a": "0",
+    "errors": {
+      "amount": "จำนวนเงินต้องมากกว่า 0",
+    },
+    "r": "FAKE-AB12",
+    "satang": null,
+  },
+  {
+    "a": "1.234",
+    "errors": {
+      "amount": "กรอกเป็นบาท ทศนิยมไม่เกิน 2 ตำแหน่ง",
+    },
+    "r": "FAKE-AB12",
+    "satang": null,
+  },
+  {
+    "a": "10",
+    "errors": {
+      "patient_ref": "ต้องอยู่ในรูป FAKE- ตามด้วยตัวอักษรพิมพ์ใหญ่หรือตัวเลข 3-12 ตัว",
+    },
+    "r": "FAKE-AB",
+    "satang": null,
+  },
+  {
+    "a": "10",
+    "errors": {
+      "patient_ref": "ต้องอยู่ในรูป FAKE- ตามด้วยตัวอักษรพิมพ์ใหญ่หรือตัวเลข 3-12 ตัว",
+    },
+    "r": "fake-ab12",
+    "satang": null,
+  },
+  {
+    "a": "",
+    "errors": {
+      "amount": "กรอกเป็นบาท ทศนิยมไม่เกิน 2 ตำแหน่ง",
+      "patient_ref": "ต้องอยู่ในรูป FAKE- ตามด้วยตัวอักษรพิมพ์ใหญ่หรือตัวเลข 3-12 ตัว",
+    },
+    "r": "",
+    "satang": null,
+  },
+]
+`;
+
+exports[`baseline > การแปลงจำนวนเงิน 1`] = `
+[
+  [
+    "0.01",
+    1,
+    "0.01",
+  ],
+  [
+    "0.1",
+    10,
+    "0.10",
+  ],
+  [
+    "1",
+    100,
+    "1.00",
+  ],
+  [
+    "19.99",
+    1999,
+    "19.99",
+  ],
+  [
+    "1234567.89",
+    123456789,
+    "1,234,567.89",
+  ],
+]
+`;
+
+exports[`baseline > ค่าคงที่และป้ายชื่อ 1`] = `
+{
+  "final": [
+    [
+      "PENDING",
+      false,
+    ],
+    [
+      "APPROVED",
+      true,
+    ],
+    [
+      "REJECTED",
+      true,
+    ],
+  ],
+  "maxSatang": 1000000000,
+  "pageSize": 10,
+  "pattern": "^FAKE-[A-Z0-9]{3,12}$",
+  "reasonLabel": {
+    "ok": "ผ่านเกณฑ์",
+    "over_limit": "เกินวงเงิน",
+  },
+  "statusLabel": {
+    "APPROVED": "อนุมัติ",
+    "PENDING": "รอประมวลผล",
+    "REJECTED": "ไม่อนุมัติ",
+  },
+  "statuses": [
+    "PENDING",
+    "APPROVED",
+    "REJECTED",
+  ],
+}
+`;
