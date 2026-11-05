@@ -499,15 +499,23 @@ class TestWorkflow(unittest.TestCase):
         self.assertEqual(j["needs"], ["backend", "web", "static"])
         build = next(s for s in j["steps"] if s.get("uses", "").startswith("docker/build-push-action"))
         self.assertIs(build["with"]["push"], False)
-        scan = next(s for s in j["steps"] if s.get("uses", "").startswith("aquasecurity/trivy-action"))
-        self.assertEqual(scan["with"]["exit-code"], "1")
+        scan = next(s for s in j["steps"] if "aquasec/trivy:" in str(s.get("run", "")))
+        self.assertIn("--exit-code 1", scan["run"])
+        self.assertIn("--severity HIGH,CRITICAL", scan["run"])
         names = {m["name"] for m in j["strategy"]["matrix"]["include"]}
         self.assertEqual(names, {"api", "worker", "web"})
 
     def test_scans_cover_deps_secrets_and_files(self):
         t = self.text
-        for needle in ("govulncheck", "gitleaks", "scan-type: fs"):
+        for needle in ("govulncheck", "gitleaks", "trivy fs", "--scanners vuln,secret,misconfig"):
             self.assertIn(needle, t)
+
+    def test_trivy_runs_from_a_pinned_image_not_the_action(self):
+        # trivy-action tags were force-pushed to malicious commits in 2026: do not depend on a movable tag
+        self.assertNotIn("aquasecurity/trivy-action", self.text)
+        for img in re.findall(r"aquasec/trivy:(\S+)", self.text):
+            self.assertRegex(img, r"^\d+\.\d+\.\d+$")
+        self.assertNotRegex(self.text, r"aquasec/trivy:(latest|0\.69\.[456])")
 
     def test_workflow_paths_match_real_folders(self):
         self.assertTrue((ROOT / "web" / "package-lock.json").exists())

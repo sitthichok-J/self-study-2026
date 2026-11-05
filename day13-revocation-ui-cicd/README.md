@@ -15,14 +15,14 @@ Kafka UI :8085 ── ดู topic claims.submitted / DLQ (read-only)
 ```
 
 1. **เพิกถอน access token ทันที** (ข้อที่ Day 12 บอกว่าทำไม่ได้)
-   - ทุก token มี `jti` (สุ่ม 16 byte) และ API ต้องเห็น `jti` ถึงรับ token
+   - ทุก token มี `jti` (สุ่ม 16 byte จาก `crypto/rand`) และ API ต้องเห็น `jti` ถึงรับ token ใช้ stdlib ล้วน ไม่เพิ่ม dependency ฝั่ง auth (valkey ใช้ go-redis ตัวเดิม)
    - logout ที่ส่ง Bearer ไปด้วย: ขึ้นบัญชี `rev:jti:<jti>` ใน valkey จนถึงเวลาที่ token หมดอายุเอง (exp + leeway) จากนั้นรายการหายเอง
    - refresh token ถูกใช้ซ้ำ (ถูกขโมย): ตั้ง `rev:user:<user>` = เวลาปัจจุบัน token ของ user นั้นที่ออกก่อนเวลานี้ตายทั้งหมด (เทียบด้วย `iat` หน่วยวินาที ออกวินาทีเดียวกันก็ถูกบล็อก ฝั่งปลอดภัยไว้ก่อน)
    - valkey ตอบไม่ได้ = ตรวจ blocklist ไม่ได้ = **ปิดไว้ก่อน** (503 พร้อม `Retry-After`) ไม่ปล่อยผ่าน
    - valkey เปิด AOF + volume เพื่อให้บัญชีรอด restart
 2. **rate limit ต่อ user** ที่ API (fixed window ใน valkey, ค่าเริ่มต้น 100 ครั้ง/นาที ตั้งด้วย `USER_RATE_LIMIT`, 0 = ปิด) ต่างจาก Kong ที่นับต่อ IP: บัญชีเดียวใช้หลาย IP ก็ชน และคนหลายคนหลัง IP เดียวไม่ชนกันเอง ตอบ 429 พร้อม `Retry-After` ถ้า valkey ล่มจะ **ปล่อยผ่าน** (เลือก availability เพราะ Kong ยังจำกัดต่อ IP อยู่) และ log ไว้
 3. **ตรวจเคลมโดยเจ้าหน้าที่**: ยอดเกิน 20,000 ถึง 50,000 บาท worker ไม่ตัดสินเอง (คง PENDING เหตุผล `needs_review`) staff กด **อนุมัติ / ไม่อนุมัติ** ในหน้ารายละเอียด (กดสองครั้งเพื่อยืนยัน) -> `POST /claims/{id}/approve|reject` เฉพาะ staff, ตัดสินซ้ำได้ 409, user ธรรมดาได้ 403
-4. **CI/CD จริงบน GitHub Actions**: ไฟล์ `ci/day13.yml` (วางที่ `.github/workflows/day13.yml` ของ repo): test + vet + race, valkey จริงสำหรับเทสต์ adapter, Vue typecheck/test/build, เทสต์ static, build image 3 ตัว + Trivy, govulncheck, gitleaks, Trivy fs ไม่ push image และไม่มี secret
+4. **CI/CD จริงบน GitHub Actions**: ไฟล์ `ci/day13.yml` (วางที่ `.github/workflows/day13.yml` ของ repo): test + vet + race, valkey จริงสำหรับเทสต์ adapter, Vue typecheck/test/build, เทสต์ static, build image 3 ตัว + Trivy, govulncheck, gitleaks, Trivy fs (เรียกจาก image ระบุเวอร์ชัน ไม่ใช้ trivy-action) ไม่ push image และไม่มี secret
 5. **หน้าจอดูระบบ**: Kong Manager, Kafka UI, Grafana + Prometheus + Jaeger, Valkey ผ่าน Redis Insight (ภาพแคปอยู่ใน `notes/`)
 
 ## วิธีรัน

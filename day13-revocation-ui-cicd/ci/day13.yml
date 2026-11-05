@@ -87,13 +87,12 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
       # สแกน image ที่เพิ่ง build: HIGH/CRITICAL ที่มี fix แล้วทำให้ job ล้ม
-      - uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: day13-${{ matrix.name }}:ci
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          scanners: vuln
-          exit-code: "1"
+      # ไม่ใช้ GitHub Action ของ Trivy: tag ของมันเคยถูกแทนที่ด้วยโค้ดอันตราย (supply chain) เรียก Trivy จาก image ที่ระบุเวอร์ชันแทน
+      - name: trivy image
+        run: >-
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.76.1
+          image --severity HIGH,CRITICAL --ignore-unfixed --scanners vuln --exit-code 1
+          day13-${{ matrix.name }}:ci
 
   scans:
     needs: [backend]
@@ -108,11 +107,8 @@ jobs:
         run: go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...
       - name: gitleaks (หา secret ในโค้ด)
         run: docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.21.2 detect --source "/repo/${APP}" --no-git --redact --verbose
-      - uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: day13-revocation-ui-cicd
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          scanners: vuln,secret,misconfig
-          exit-code: "1"
+      - name: trivy fs
+        run: >-
+          docker run --rm -v "$PWD:/src" aquasec/trivy:0.76.1
+          fs --severity HIGH,CRITICAL --ignore-unfixed --scanners vuln,secret,misconfig --exit-code 1
+          "/src/${APP}"
