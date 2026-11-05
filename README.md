@@ -15,3 +15,4 @@
 | 9 | [day09-frontend-gateway](day09-frontend-gateway) | Capstone frontend + gateway + CI/CD: Vue 3 + Kong + pipeline ต่อกับ backend ของ Day 8 รันจริงผ่าน 32/32 ขั้น (k8s และ pipeline บน GitHub ยังไม่เคยรัน) |
 | 10 | [day10-observability-security](day10-observability-security) | Observability + Security: Prometheus, Grafana, Jaeger, JWT, ตรวจเจ้าของข้อมูล, สแกนช่องโหว่และแก้แล้ว รันจริงผ่าน 57/57 ขั้น (UI/Kong ของ Day 9 ยังไม่ส่ง token) |
 | 11 | [day11-auth-gateway](day11-auth-gateway) | Auth ครบวงจร: login ใน Vue, refresh token หมุนเวียน, Kong ตรวจ JWT + rate limit + TLS รันจริงผ่าน 86/86 ขั้น (JWT ยังเป็น secret ร่วม HS256, ยังไม่ได้ลอง UI ด้วยมือ) |
+| 12 | [day12-auth-hardening](day12-auth-hardening) | ปิดช่องโหว่ Day 11: JWT RS256 + kid + หมุน key, Kong log ไม่มี query string, UI แสดงเวลารอตอนโดน 429 รันจริงผ่าน 101/101 ขั้น (ฟอร์ม 429 ส่งผ่านสคริปต์ ไม่ได้พิมพ์ด้วยมือ, access token ที่ออกไปแล้วยังเพิกถอนไม่ได้) |
