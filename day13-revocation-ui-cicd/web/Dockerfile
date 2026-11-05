@@ -10,6 +10,9 @@ ENV VITE_API_BASE=$VITE_API_BASE
 RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:stable-alpine
+# ลงแพตช์แพ็กเกจ OS ที่ตัวสแกนเจอ (brotli, curl, expat) แล้วกลับไปใช้ user ไม่ใช่ root
+USER root
+RUN apk upgrade --no-cache
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 # image นี้ (nginx-unprivileged) ใช้ uid 101 อยู่แล้ว ประกาศ USER ให้ชัดเจนและให้ตัวสแกนเห็น
