@@ -1,0 +1,200 @@
+name: day12
+
+# Local demo only. Nothing here is a real secret:
+#  - GRAFANA_ADMIN_PASSWORD must come from the environment; JWT keys live in ./keys (scripts/run-all.ps1 creates them)
+#    (scripts/run-all.ps1 generates random ones into .env, which is git-ignored)
+#  - the postgres password below is a throw-away value for this compose file.
+# Every published port is bound to 127.0.0.1; the metrics port (9090) of api and
+# worker is not published at all, only Prometheus reaches it on the compose network.
+x-db-url: &db_url postgres://claims:claims@postgres:5432/claims?sslmode=disable
+
+x-hardened: &hardened
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: ["ALL"]
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: claims
+      POSTGRES_PASSWORD: claims
+      POSTGRES_DB: claims
+    ports: ["127.0.0.1:5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U claims -d claims"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    ports: ["127.0.0.1:6379:6379"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  kafka:
+    image: apache/kafka:3.8.0
+    ports: ["127.0.0.1:9094:9094"]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  kafka-init:
+    image: apache/kafka:3.8.0
+    depends_on:
+      kafka: { condition: service_healthy }
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic claims.submitted --partitions 3 --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic claims.submitted.dlq --partitions 1 --replication-factor 1
+
+  migrate:
+    image: migrate/migrate:v4.18.1
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+    volumes: ["./migrations:/migrations:ro"]
+    command: ["-path=/migrations", "-database=postgres://claims:claims@postgres:5432/claims?sslmode=disable", "up"]
+
+  api:
+    <<: *hardened
+    build: { context: ., args: { CMD: api } }
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      kafka-init: { condition: service_completed_successfully }
+      valkey: { condition: service_healthy }
+    environment:
+      DATABASE_URL: *db_url
+      REDIS_ADDR: valkey:6379
+      KAFKA_BROKERS: kafka:9092
+      HTTP_ADDR: ":8080"
+      METRICS_ADDR: ":9090"
+      OTLP_ENDPOINT: http://jaeger:4318
+      JWT_KEYS_DIR: /keys # <kid>.key (signing) + <kid>.pub (accepted); เปลี่ยน key = เพิ่มคู่ใหม่แล้วตั้ง JWT_SIGNING_KID
+      JWT_SIGNING_KID: ${JWT_SIGNING_KID:-k1}
+      JWT_ISSUER: claim-tracker
+      JWT_AUDIENCE: claims-api
+      ACCESS_TTL: 10m
+      REFRESH_TTL: 12h
+      REFRESH_COOKIE_PATH: /api/auth # path ที่ browser เห็นหลัง Kong (ตรงกับ route /api/auth)
+      REFRESH_COOKIE_SECURE: "true"
+      DEMO_PASSWORD: ${DEMO_PASSWORD:?set DEMO_PASSWORD (demo users alice, bob, ops); scripts/run-all.ps1 generates one}
+    volumes:
+      - ./keys:/keys:ro # คีย์ RSA ที่ run-all สร้าง (git-ignore) API ต้องการแค่ .key ของ kid ที่ใช้เซ็นกับ .pub ทั้งหมด
+    ports: ["127.0.0.1:8080:8080"]
+    read_only: true
+    restart: unless-stopped
+
+  worker:
+    <<: *hardened
+    build: { context: ., args: { CMD: worker } }
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      kafka-init: { condition: service_completed_successfully }
+      valkey: { condition: service_healthy }
+    environment:
+      DATABASE_URL: *db_url
+      REDIS_ADDR: valkey:6379
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_GROUP: claims-worker
+      METRICS_ADDR: ":9090"
+      OTLP_ENDPOINT: http://jaeger:4318
+    read_only: true
+    restart: unless-stopped
+
+  # ---- ทางเข้า: Kong (ตรวจ JWT, rate limit, TLS) และ UI ----
+  gateway:
+    image: kong:3.9.1
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      api: { condition: service_started }
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/kong.yml
+      KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
+      KONG_SSL_CERT: /certs/server.crt
+      KONG_SSL_CERT_KEY: /certs/server.key
+      KONG_ADMIN_LISTEN: "off"
+      # log รูปแบบ noquery: ไม่บันทึก query string (กัน token ใน ?jwt=... หลุดลง log) ใช้ $uri แทน $request
+      KONG_NGINX_HTTP_LOG_FORMAT: "noquery '$$remote_addr [$$time_local] \"$$request_method $$uri $$server_protocol\" $$status $$body_bytes_sent \"$$http_user_agent\"'"
+      KONG_PROXY_ACCESS_LOG: /dev/stdout noquery
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_NGINX_WORKER_PROCESSES: "1"
+    volumes:
+      - ./gateway/.rendered:/kong:ro # kong.yml ที่ render จาก kong.yml.tpl (มี secret, git-ignore)
+      - ./certs:/certs:ro
+    ports: ["127.0.0.1:8000:8000", "127.0.0.1:8443:8443"]
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      args:
+        VITE_API_BASE: http://localhost:8000/api
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    depends_on:
+      gateway: { condition: service_healthy }
+    ports: ["127.0.0.1:3000:8080"]
+    restart: unless-stopped
+
+  # ---- observability ----
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports: ["127.0.0.1:16686:16686"]   # UI + query API; OTLP (4318) stays on the compose network
+    security_opt: ["no-new-privileges:true"]
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=2d
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports: ["127.0.0.1:9091:9090"]
+    security_opt: ["no-new-privileges:true"]
+    depends_on: [api, worker]
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD; scripts/run-all.ps1 generates one}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["127.0.0.1:3001:3000"]
+    security_opt: ["no-new-privileges:true"]
+    depends_on: [prometheus, jaeger]

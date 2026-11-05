@@ -1,0 +1,9 @@
+.git
+notes
+docs
+tests
+scripts
+*.md
+keys
+certs
+.env

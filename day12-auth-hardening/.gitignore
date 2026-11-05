@@ -1,0 +1,6 @@
+.env
+*.log
+notes/*.tmp
+certs/
+gateway/.rendered/
+keys/

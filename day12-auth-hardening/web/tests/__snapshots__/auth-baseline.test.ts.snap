@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`auth contract baseline > ค่าคงที่และการตัดสิน redirect 1`] = `
+{
+  "csrf": [
+    "X-Requested-With",
+    "claims-web",
+  ],
+  "prefix": "/auth/",
+  "redirects": [
+    "/claims/1",
+    "/",
+    "/",
+    "/",
+    "/a?b=1",
+  ],
+}
+`;

@@ -1,0 +1,57 @@
+groups:
+  - name: claims
+    rules:
+      - alert: ApiDown
+        expr: up{job="claims-api"} == 0
+        for: 1m
+        labels: { severity: page }
+        annotations:
+          summary: "claims-api cannot be scraped"
+
+      - alert: HighErrorRate
+        # RED: errors. 5xx share of all requests over 5 minutes.
+        expr: |
+          sum(rate(http_requests_total{code=~"5.."}[5m]))
+            / clamp_min(sum(rate(http_requests_total[5m])), 1e-9) > 0.05
+        for: 5m
+        labels: { severity: page }
+        annotations:
+          summary: "more than 5% of requests are failing with 5xx"
+
+      - alert: HighLatencyP95
+        # RED: duration.
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m]))) > 1
+        for: 5m
+        labels: { severity: ticket }
+        annotations:
+          summary: "p95 latency above 1s"
+
+      - alert: DeadLetterGrowing
+        expr: increase(consumer_messages_total{outcome="dlq"}[10m]) > 0
+        labels: { severity: ticket }
+        annotations:
+          summary: "messages are landing in the dead-letter topic"
+
+      - alert: AuthFailureSpike
+        # many 401s in a row = scanning or a broken client
+        expr: sum(rate(auth_failures_total[5m])) > 1
+        for: 5m
+        labels: { severity: ticket }
+        annotations:
+          summary: "more than 1 failed authentication per second"
+
+      - alert: AccessDeniedSeen
+        # someone asked for a claim that is not theirs
+        expr: increase(authz_denied_total[10m]) > 0
+        labels: { severity: ticket }
+        annotations:
+          summary: "owner check refused a request (possible IDOR probing)"
+
+      - alert: DbPoolSaturated
+        # USE: saturation of the connection pool
+        expr: db_pool_acquired_conns / db_pool_max_conns > 0.9
+        for: 2m
+        labels: { severity: ticket }
+        annotations:
+          summary: "more than 90% of the DB pool is in use"
