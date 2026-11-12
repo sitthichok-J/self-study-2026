@@ -94,7 +94,8 @@ spec:
             - { name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP, value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT" }
             - { name: KAFKA_CONTROLLER_LISTENER_NAMES, value: CONTROLLER }
             - { name: KAFKA_INTER_BROKER_LISTENER_NAME, value: PLAINTEXT }
-            - { name: KAFKA_CONTROLLER_QUORUM_VOTERS, value: "1@kafka:9093" }
+            # ต้องเป็น localhost: ชื่อ kafka (Service) ใช้ต่อเข้า pod ไม่ได้จนกว่า pod จะ Ready แต่ pod จะ Ready ไม่ได้ถ้า controller ยังไม่เจอตัวเอง
+            - { name: KAFKA_CONTROLLER_QUORUM_VOTERS, value: "1@localhost:9093" }
             - { name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR, value: "1" }
             - { name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR, value: "1" }
             - { name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR, value: "1" }

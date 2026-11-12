@@ -258,6 +258,12 @@ class TestMatchesDay13(unittest.TestCase):
                     if src is not None:
                         self.assertIn(f'"GET {http["path"]}"', src, f'{d["metadata"]["name"]} {http["path"]}')
 
+    def test_kafka_controller_quorum_points_at_localhost_not_its_own_service(self):
+        # CI run #1: with 1@kafka:9093 the pod could not reach itself through the Service before it was Ready
+        k = next(d for d in of_kind("Deployment") if d["metadata"]["name"] == "kafka")
+        env = {e["name"]: e.get("value") for e in containers(k)[0]["env"]}
+        self.assertEqual(env["KAFKA_CONTROLLER_QUORUM_VOTERS"], "1@localhost:9093")
+
     def test_web_probe_path_exists_in_nginx_conf(self):
         conf = (APP13 / "web" / "nginx.conf").read_text(encoding="utf-8")
         self.assertIn("/healthz", conf)

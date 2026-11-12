@@ -47,11 +47,13 @@ jobs:
           config: day14-k8s-kind/kind-config.yaml
       - name: build, load, deploy และ smoke test ผ่าน Kong
         run: python day14-k8s-kind/scripts/kindctl.py all
+      # log ของ GitHub ตัดทิ้งถ้ายาวเกิน จึงพิมพ์เฉพาะที่จำเป็น: สถานะ pod, เหตุการณ์ผิดปกติ และท้าย log ของตัวที่ล้ม
       - name: สถานะ cluster เมื่อล้ม
         if: failure()
         run: |
-          kubectl get pods -A -o wide
-          kubectl -n claims describe pods
-          for d in api worker gateway web; do echo "== $d"; kubectl -n claims logs deploy/$d --tail=80 || true; done
-          kubectl -n claims logs job/migrate --tail=40 || true
-          kubectl -n claims logs job/kafka-init --tail=40 || true
+          kubectl -n claims get pods
+          kubectl -n claims get events --field-selector type=Warning --sort-by=.lastTimestamp | tail -15
+          for d in kafka worker api; do echo "== $d (previous)"; kubectl -n claims logs deploy/$d --previous --tail=20 2>&1 | cut -c1-200 || true; done
+          for d in kafka api worker; do echo "== $d"; kubectl -n claims logs deploy/$d --tail=15 2>&1 | cut -c1-200 || true; done
+          echo "== kafka-init"; kubectl -n claims logs job/kafka-init --tail=15 2>&1 | cut -c1-200 || true
+          echo "== migrate"; kubectl -n claims logs job/migrate --tail=10 2>&1 | cut -c1-200 || true
