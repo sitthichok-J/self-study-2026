@@ -1,0 +1,283 @@
+{
+  "_services": {
+    "api": {
+      "ports": [
+        {
+          "port": 8080
+        }
+      ],
+      "type": "ClusterIP"
+    },
+    "gateway": {
+      "ports": [
+        {
+          "nodePort": 30080,
+          "port": 8000,
+          "targetPort": 8000
+        }
+      ],
+      "type": "NodePort"
+    },
+    "kafka": {
+      "ports": [
+        {
+          "port": 9092
+        }
+      ],
+      "type": "ClusterIP"
+    },
+    "postgres": {
+      "ports": [
+        {
+          "port": 5432
+        }
+      ],
+      "type": "ClusterIP"
+    },
+    "valkey": {
+      "ports": [
+        {
+          "port": 6379
+        }
+      ],
+      "type": "ClusterIP"
+    },
+    "web": {
+      "ports": [
+        {
+          "nodePort": 30300,
+          "port": 3000,
+          "targetPort": 8080
+        }
+      ],
+      "type": "NodePort"
+    }
+  },
+  "api": {
+    "image": "claims-api:day14",
+    "limits": {
+      "memory": "128Mi"
+    },
+    "liveness": {
+      "httpGet": {
+        "path": "/healthz",
+        "port": 8080
+      },
+      "initialDelaySeconds": 10,
+      "periodSeconds": 10
+    },
+    "ports": [
+      8080
+    ],
+    "readOnlyRootFilesystem": true,
+    "readiness": {
+      "httpGet": {
+        "path": "/readyz",
+        "port": 8080
+      },
+      "periodSeconds": 5
+    },
+    "replicas": 1,
+    "requests": {
+      "cpu": "50m",
+      "memory": "32Mi"
+    },
+    "runAsNonRoot": true,
+    "secretRefs": [
+      "app/demo-password",
+      "db/url"
+    ],
+    "strategy": "RollingUpdate"
+  },
+  "gateway": {
+    "image": "kong:3.9.1",
+    "limits": {
+      "memory": "512Mi"
+    },
+    "liveness": {
+      "exec": {
+        "command": [
+          "kong",
+          "health"
+        ]
+      },
+      "initialDelaySeconds": 30,
+      "periodSeconds": 15
+    },
+    "ports": [
+      8000
+    ],
+    "readOnlyRootFilesystem": false,
+    "readiness": {
+      "exec": {
+        "command": [
+          "kong",
+          "health"
+        ]
+      },
+      "initialDelaySeconds": 5,
+      "periodSeconds": 5
+    },
+    "replicas": 1,
+    "requests": {
+      "cpu": "100m",
+      "memory": "256Mi"
+    },
+    "runAsNonRoot": false,
+    "secretRefs": [],
+    "strategy": "RollingUpdate"
+  },
+  "kafka": {
+    "image": "apache/kafka:3.8.0",
+    "limits": {
+      "memory": "1Gi"
+    },
+    "liveness": null,
+    "ports": [
+      9092
+    ],
+    "readOnlyRootFilesystem": false,
+    "readiness": {
+      "initialDelaySeconds": 10,
+      "periodSeconds": 5,
+      "tcpSocket": {
+        "port": 9092
+      }
+    },
+    "replicas": 1,
+    "requests": {
+      "cpu": "100m",
+      "memory": "512Mi"
+    },
+    "runAsNonRoot": false,
+    "secretRefs": [],
+    "strategy": "Recreate"
+  },
+  "postgres": {
+    "image": "postgres:16-alpine",
+    "limits": {
+      "memory": "512Mi"
+    },
+    "liveness": null,
+    "ports": [
+      5432
+    ],
+    "readOnlyRootFilesystem": false,
+    "readiness": {
+      "exec": {
+        "command": [
+          "pg_isready",
+          "-U",
+          "claims",
+          "-d",
+          "claims"
+        ]
+      },
+      "periodSeconds": 3
+    },
+    "replicas": 1,
+    "requests": {
+      "cpu": "50m",
+      "memory": "128Mi"
+    },
+    "runAsNonRoot": false,
+    "secretRefs": [
+      "db/password"
+    ],
+    "strategy": "Recreate"
+  },
+  "valkey": {
+    "image": "valkey/valkey:8-alpine",
+    "limits": {
+      "memory": "128Mi"
+    },
+    "liveness": null,
+    "ports": [
+      6379
+    ],
+    "readOnlyRootFilesystem": false,
+    "readiness": {
+      "exec": {
+        "command": [
+          "valkey-cli",
+          "ping"
+        ]
+      },
+      "periodSeconds": 3
+    },
+    "replicas": 1,
+    "requests": {
+      "cpu": "20m",
+      "memory": "32Mi"
+    },
+    "runAsNonRoot": false,
+    "secretRefs": [],
+    "strategy": "Recreate"
+  },
+  "web": {
+    "image": "claims-web:day14",
+    "limits": {
+      "memory": "64Mi"
+    },
+    "liveness": {
+      "httpGet": {
+        "path": "/healthz",
+        "port": 8080
+      },
+      "initialDelaySeconds": 5,
+      "periodSeconds": 10
+    },
+    "ports": [
+      8080
+    ],
+    "readOnlyRootFilesystem": true,
+    "readiness": {
+      "httpGet": {
+        "path": "/healthz",
+        "port": 8080
+      },
+      "periodSeconds": 5
+    },
+    "replicas": 1,
+    "requests": {
+      "cpu": "10m",
+      "memory": "16Mi"
+    },
+    "runAsNonRoot": true,
+    "secretRefs": [],
+    "strategy": "RollingUpdate"
+  },
+  "worker": {
+    "image": "claims-worker:day14",
+    "limits": {
+      "memory": "128Mi"
+    },
+    "liveness": {
+      "httpGet": {
+        "path": "/healthz",
+        "port": 9090
+      },
+      "initialDelaySeconds": 10,
+      "periodSeconds": 10
+    },
+    "ports": [],
+    "readOnlyRootFilesystem": true,
+    "readiness": {
+      "httpGet": {
+        "path": "/healthz",
+        "port": 9090
+      },
+      "periodSeconds": 5
+    },
+    "replicas": 1,
+    "requests": {
+      "cpu": "50m",
+      "memory": "32Mi"
+    },
+    "runAsNonRoot": true,
+    "secretRefs": [
+      "db/url"
+    ],
+    "strategy": "RollingUpdate"
+  }
+}

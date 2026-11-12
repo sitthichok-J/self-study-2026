@@ -1,0 +1,11 @@
+# cluster kind สำหรับ Claim Tracker Lite: node เดียว เปิดสองพอร์ตออกมาที่ 127.0.0.1 เท่านั้น
+# 30080 = gateway (Kong) -> localhost:8000   30300 = web -> localhost:3000
+# พอร์ตตรงกับที่ docker-compose ของ Day 13 ใช้ และตรงกับ VITE_API_BASE ที่ฝังใน image web
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: claim
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - { containerPort: 30080, hostPort: 8000, listenAddress: "127.0.0.1", protocol: TCP }
+      - { containerPort: 30300, hostPort: 3000, listenAddress: "127.0.0.1", protocol: TCP }

@@ -1,0 +1,18 @@
+# ค่าตั้งที่ไม่ใช่ความลับของ api (อ่านผ่าน envFrom) ความลับอยู่ใน Secret db / app / jwt-keys ซึ่งสคริปต์ deploy สร้างตอนรัน ไม่เก็บใน repo
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: api-config, namespace: claims }
+data:
+  HTTP_ADDR: ":8080"
+  METRICS_ADDR: ":9090"
+  REDIS_ADDR: "valkey:6379"
+  KAFKA_BROKERS: "kafka:9092"
+  JWT_KEYS_DIR: /keys
+  JWT_SIGNING_KID: k1
+  JWT_ISSUER: claim-tracker
+  JWT_AUDIENCE: claims-api
+  USER_RATE_LIMIT: "100"
+  ACCESS_TTL: 10m
+  REFRESH_TTL: 12h
+  REFRESH_COOKIE_PATH: /api/auth
+  REFRESH_COOKIE_SECURE: "true"

@@ -1,0 +1,57 @@
+# วางที่ <repo>/.github/workflows/day14.yml (GitHub อ่านเฉพาะที่ root ของ repo) ไฟล์ใน ci/ ของโฟลเดอร์ Day 14 เป็นสำเนาไว้ให้เทสต์ static ตรวจ
+# ไม่มี secret ในไฟล์นี้ รหัสผ่านของ DB และ demo user สุ่มใหม่ในแต่ละรอบ อยู่เฉพาะใน cluster ชั่วคราวของ runner
+name: day14
+on:
+  push:
+    branches: [main]
+    paths: ["day14-k8s-kind/**", "day13-revocation-ui-cicd/**", ".github/workflows/day14.yml"]
+  pull_request:
+    paths: ["day14-k8s-kind/**", ".github/workflows/day14.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: day14-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP: day14-k8s-kind
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pyyaml
+      - run: python -m unittest discover -s day14-k8s-kind/tests -v
+      # สแกน manifest ของแอปเราเอง (api, worker, web, config) หา misconfig HIGH/CRITICAL เรียก Trivy จาก image ที่ระบุเวอร์ชัน ไม่ใช้ trivy-action
+      # ข้าม infra.yaml, jobs.yaml, gateway.yaml: เป็นตัวช่วยรันในเครื่องที่ใช้ image ของคนอื่น (postgres, kafka, kong) ไม่ได้ทำ hardening
+      - name: trivy config
+        run: >-
+          docker run --rm -v "$PWD:/src" aquasec/trivy:0.76.1
+          config --severity HIGH,CRITICAL --exit-code 1
+          --skip-files "/src/${APP}/k8s/infra.yaml,/src/${APP}/k8s/jobs.yaml,/src/${APP}/k8s/gateway.yaml"
+          "/src/${APP}/k8s"
+
+  kind:
+    needs: [static]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: claim
+          config: day14-k8s-kind/kind-config.yaml
+      - name: build, load, deploy และ smoke test ผ่าน Kong
+        run: python day14-k8s-kind/scripts/kindctl.py all
+      - name: สถานะ cluster เมื่อล้ม
+        if: failure()
+        run: |
+          kubectl get pods -A -o wide
+          kubectl -n claims describe pods
+          for d in api worker gateway web; do echo "== $d"; kubectl -n claims logs deploy/$d --tail=80 || true; done
+          kubectl -n claims logs job/migrate --tail=40 || true
+          kubectl -n claims logs job/kafka-init --tail=40 || true
