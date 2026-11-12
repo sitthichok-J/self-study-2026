@@ -4,7 +4,9 @@
 
 ## สถานะตอนนี้
 
-เขียน manifest, สคริปต์ deploy/smoke, เทสต์ static และ workflow เสร็จแล้ว เทสต์ static 34 ข้อผ่านในเครื่อง (รันแค่ Python ไม่ต้องมี Docker) แต่ **ยังไม่เคยสร้าง cluster จริงเลย** ทุกอย่างที่เกี่ยวกับ pod, probe, rollout ยังไม่ได้พิสูจน์ จนกว่าจะรัน `kindctl.py all` สำเร็จและมีผลใน `notes/`
+รันบน cluster kind จริงแล้วใน GitHub Actions (Linux) รอบที่ 2 เขียว: ทุก Deployment rollout ผ่าน, job `kafka-init` กับ `migrate` เสร็จ และ smoke test ผ่าน 7/7 ผ่าน Kong จนถึง worker ตัดสินเคลมเป็น APPROVED (ดู `notes/run-results.md`) เทสต์ static 35 ข้อผ่านทั้งในเครื่องและใน CI
+
+ที่ยังไม่ได้ทำ: ยังไม่ได้รันบนเครื่อง Windows ของตัวเอง, ยังไม่ได้ลองแบบฝึกหัด rollout/rollback/ฆ่า pod/OOMKilled ใน `notes/exercises.md`, ยังไม่ได้เปิดหน้าเว็บด้วยเบราว์เซอร์จริง
 
 ## ทำอะไร
 
@@ -54,8 +56,8 @@ baseline ใน `tests/baseline/k8s-summary.json` คือสิ่งที่
 
 ## ที่ยังไม่ได้ทำ / ข้อจำกัด
 
-- ยังไม่ได้รันบน cluster จริง (ดู "สถานะตอนนี้")
+- ผล smoke มาจากรันใน CI เท่านั้น ยังไม่มีผลจากเครื่องตัวเอง (ดู "สถานะตอนนี้")
 - postgres และ kafka ตัวเดียวไม่ทำ HA, postgres ใช้ emptyDir (ข้อมูลหายเมื่อ pod ถูกสร้างใหม่)
 - ไม่มี TLS ที่ Kong ใน cluster นี้ (cookie refresh ตั้ง `Secure` เหมือน compose: browser ยอมให้ใช้บน localhost)
 - ไม่มี Ingress controller ใช้ NodePort + extraPortMappings ของ kind แทน
-- ขั้น kind ใน CI ยังไม่เคยรัน
+- ขั้น kind ใน CI รันแล้ว 2 รอบ (รอบแรกแดง รอบที่สองเขียว) แต่ยังไม่เคยรันบน pull request
