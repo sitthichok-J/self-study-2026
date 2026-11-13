@@ -5,10 +5,13 @@
 ## สถานะ (อ่านก่อน)
 
 - เขียนแล้ว: manifest Prometheus + Grafana, สคริปต์ `obsctl.py`, เทสต์ promtool สำหรับ alert ทั้ง 7 ตัว, runbook, เทสต์ static 30 ข้อ + baseline, workflow `day15`
-- รันจริงแล้ว: เทสต์ static 30 ข้อผ่านบนเครื่อง (ลองแก้ไฟล์ให้พังตั้งใจ 9 แบบ เทสต์จับได้ครบ)
-- **ยังไม่เคยรัน:** promtool (ที่นี่ไม่มี), cluster, Prometheus/Grafana จริง ผลทั้งหมดของส่วนนั้นต้องรอ CI รอบแรก ถ้าแดงให้แก้ตามที่เห็นแล้วจดลง `notes/run-results.md`
-- ยังไม่ได้ทำ: ย้ายจาก `internal/obs` (เขียนเองใน Day 10) ไปใช้ client_golang และ OTel SDK, Jaeger/collector ใน cluster (trace ยังไม่ถูกส่งไปไหนใน k8s เพราะ `OTLP_ENDPOINT` ว่างไว้), เปิด Grafana ดูด้วยตา
-- เหตุที่ยังไม่ย้าย lib: เครื่องที่ใช้เขียนไม่มี Go และโหลด module ไม่ได้ จึงสร้าง `go.sum` และคอมไพล์ไม่ได้
+- รันจริงแล้วบน GitHub Actions: รอบที่ 1 แดง (smoke 10 จาก 11) รอบที่ 2 เขียว (smoke 11/11, รวม 3m08s) รายละเอียดใน `notes/run-results.md`
+- เทสต์ static 30 ข้อผ่านบนเครื่อง และลองแก้ไฟล์ให้พังตั้งใจ 9 แบบ เทสต์จับได้ครบ
+- promtool (check config, check rules, test rules) ผ่านใน CI ทั้งสามขั้น อ่านได้ว่าขั้นผ่าน ไม่ได้อ่านบรรทัดผลของ promtool
+- **ยังไม่เคยรันบนเครื่อง Windows ของตัวเอง** และยังไม่ได้เปิด Grafana ดูกราฟด้วยตา
+- ยังไม่ได้ทำ: ย้ายจาก `internal/obs` (เขียนเองใน Day 10) ไปใช้ client_golang และ OTel SDK, Jaeger/collector ใน cluster (trace ยังไม่ถูกส่งไปไหนใน k8s เพราะ `OTLP_ENDPOINT` ว่างไว้)
+- เหตุที่ยังไม่ย้าย lib: เครื่องที่ใช้เขียนไม่มี Go และโหลด module ไม่ได้ จึงสร้าง `go.sum` และคอมไพล์ไม่ได้ ต้องรัน `go get` บนเครื่องที่มี Go ก่อน
+- ข้อสังเกตจากการรันจริง: `auth_failures_total` นับเฉพาะ Bearer token ที่ถึง api แล้วถูกปฏิเสธ login ผิดไม่นับ ดังนั้น alert `AuthFailureSpike` ไม่เห็นการเดารหัสผ่านตอน login
 
 ## โครง
 
