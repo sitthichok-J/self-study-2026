@@ -75,16 +75,18 @@ dashboard ชื่อ "Claim Tracker – overview" (uid `claims-overview`)
 
 ## AuthFailureSpike
 
-อาการ: login/token ล้มเหลวเกิน 1 ครั้งต่อวินาที นาน 5 นาที severity ticket
+อาการ: api ปฏิเสธ Bearer token เกิน 1 ครั้งต่อวินาที นาน 5 นาที severity ticket
+
+ข้อควรรู้ (เจอตอนรัน smoke ใน CI): `auth_failures_total` นับเฉพาะ token ที่ถึง api แล้วถูกปฏิเสธ (หมดอายุ/ถูก revoke) login รหัสผ่านผิดแค่เขียน log `login failed` ไม่เพิ่มตัวนับนี้ และ request ที่ไม่มี token หรือ token เสียถูก Kong ตัดก่อนถึง api ดังนั้น alert นี้ไม่เห็นการเดารหัสผ่าน
 
 เช็ก:
 
-1. `sum by (reason) (rate(auth_failures_total[5m]))` ดู reason ว่าเป็น token หมดอายุ รหัสผิด หรืออย่างอื่น
-2. `kubectl -n claims logs deploy/api --tail=100` ดู IP/รูปแบบ request ถ้ามี
+1. `sum by (reason) (rate(auth_failures_total[5m]))` ดู reason ว่า token ถูกปฏิเสธเพราะอะไร
+2. `kubectl -n claims logs deploy/api --tail=100` หาบรรทัด `authentication failed` และ `login failed` (login ผิดดูได้จาก log เท่านั้น)
 3. เช็กว่า Secret `jwt-keys` กับ Kong config ใช้คีย์ชุดเดียวกัน (key ไม่ตรงทำให้ token ทุกตัวถูกปฏิเสธ)
 
-สาเหตุที่น่าสงสัย: ถูกเดารหัสผ่าน, client ที่ผิดตัวหนึ่งวนยิง, เปลี่ยนคีย์แล้วลืมเปลี่ยนอีกฝั่ง
-แก้: ถ้าเป็นการโจมตี จำกัดที่ gateway ถ้าเป็นคีย์ไม่ตรง deploy ใหม่ให้ Kong กับ api ใช้คีย์เดียวกัน
+สาเหตุที่น่าสงสัย: client ที่ผิดตัวหนึ่งวนยิงด้วย token เก่า, token ถูก revoke, เปลี่ยนคีย์แล้วลืมเปลี่ยนอีกฝั่ง
+แก้: ถ้ามี client วนยิง จำกัดที่ gateway ถ้าเป็นคีย์ไม่ตรง deploy ใหม่ให้ Kong กับ api ใช้คีย์เดียวกัน
 ยืนยันว่าหาย: อัตรา auth_failures_total ลดต่ำกว่า 1 ต่อวินาที
 
 ## AccessDeniedSeen

@@ -160,7 +160,6 @@ def smoke_checks(yaml):
     auth = {"Authorization": f"Bearer {token}"}
     for _ in range(5):
         kindctl.http("GET", f"{GW}/api/claims", headers=auth)
-    kindctl.http("POST", f"{GW}/api/auth/login", {"username": "alice", "password": "wrong-on-purpose"})
     code, body, _ = kindctl.http("POST", f"{GW}/api/claims", {"patient_ref": "FAKE-OBS1", "amount": 150000},
                                  headers={**auth, "Idempotency-Key": f"obs-{int(time.time())}"})
     check("สร้าง traffic ผ่าน gateway (login + GET + POST เคลม)", code == 201 and bool(token), f"login/post code={code}")
@@ -182,8 +181,8 @@ def smoke_checks(yaml):
     r = wait_for(lambda: [x for x in (prom_query("sum(claims_decided_total)") or []) if float(x["value"][1]) > 0], 60)
     check("เห็น claims_decided_total จาก worker (> 0)", bool(r))
 
-    r = prom_query('sum(auth_failures_total)') or []
-    check("เห็น auth_failures_total หลัง login ผิดตั้งใจ (> 0)", bool(r) and float(r[0]["value"][1]) > 0)
+    r = wait_for(lambda: [x for x in (prom_query("sum(claims_submitted_total)") or []) if float(x["value"][1]) > 0], 60)
+    check("เห็น claims_submitted_total จาก api หลังสร้างเคลม (> 0)", bool(r))
 
     c, b = http("GET", PROM + "/api/v1/rules")
     loaded = set()

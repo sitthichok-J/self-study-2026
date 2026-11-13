@@ -33,7 +33,7 @@ python day15-observability-kind/scripts/obsctl.py all
 python -m unittest discover -s day15-observability-kind/tests -v
 ```
 
-smoke ตรวจ: Prometheus พร้อม, สร้าง traffic ผ่าน Kong, scrape api/worker ได้, เห็น http_requests_total / claims_decided_total / auth_failures_total, โหลด alert ครบ 7 ตัว, ApiDown ไม่ลั่น, Grafana เห็น dashboard claims-overview และต่อ Prometheus ได้
+smoke ตรวจ: Prometheus พร้อม, สร้าง traffic ผ่าน Kong, scrape api/worker ได้, เห็น http_requests_total / claims_submitted_total / claims_decided_total, โหลด alert ครบ 7 ตัว, ApiDown ไม่ลั่น, Grafana เห็น dashboard claims-overview และต่อ Prometheus ได้
 (รายการ metric ใน dashboard ที่ยังไม่มี series พิมพ์เป็น INFO ไม่นับผ่าน/ไม่ผ่าน)
 
 ## ต้องดูด้วยตาเอง (เทสต์ตรวจแทนไม่ได้)
