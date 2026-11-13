@@ -1,0 +1,177 @@
+# promtool test rules: ทดสอบ alert ของ Day 13 (deploy/prometheus/alerts.yml) ด้วยข้อมูลจำลอง
+# แต่ละ alert มีเคสที่ต้องลั่น และเคสที่ต้องไม่ลั่น  รัน: ดู ci/day15.yml (promtool จาก image prom/prometheus)
+rule_files:
+  - alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+  # ---- ApiDown: up == 0 นาน 1 นาที ----
+  - interval: 1m
+    input_series:
+      - series: 'up{job="claims-api"}'
+        values: '1 1 0 0 0 0 0 0'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: ApiDown
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: ApiDown
+        exp_alerts:
+          - exp_labels: { severity: page, job: claims-api }
+            exp_annotations: { summary: "claims-api cannot be scraped" }
+
+  - interval: 1m
+    input_series:
+      - series: 'up{job="claims-api"}'
+        values: '1 1 1 1 1 1 1 1'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: ApiDown
+        exp_alerts: []
+
+  # ---- HighErrorRate: 5xx เกิน 5% นาน 5 นาที ----
+  - interval: 1m
+    input_series:
+      - series: 'http_requests_total{method="GET",route="/api/claims",code="500"}'
+        values: '0+10x20'
+      - series: 'http_requests_total{method="GET",route="/api/claims",code="200"}'
+        values: '0+90x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: HighErrorRate
+        exp_alerts:
+          - exp_labels: { severity: page }
+            exp_annotations: { summary: "more than 5% of requests are failing with 5xx" }
+
+  - interval: 1m
+    input_series:
+      - series: 'http_requests_total{method="GET",route="/api/claims",code="500"}'
+        values: '0+1x20'
+      - series: 'http_requests_total{method="GET",route="/api/claims",code="200"}'
+        values: '0+99x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: HighErrorRate
+        exp_alerts: []
+
+  # ---- HighLatencyP95: p95 เกิน 1 วินาที ----
+  - interval: 1m
+    input_series:
+      - series: 'http_request_duration_seconds_bucket{method="GET",route="/api/claims",le="0.5"}'
+        values: '0+0x20'
+      - series: 'http_request_duration_seconds_bucket{method="GET",route="/api/claims",le="1"}'
+        values: '0+0x20'
+      - series: 'http_request_duration_seconds_bucket{method="GET",route="/api/claims",le="2.5"}'
+        values: '0+60x20'
+      - series: 'http_request_duration_seconds_bucket{method="GET",route="/api/claims",le="+Inf"}'
+        values: '0+60x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: HighLatencyP95
+        exp_alerts:
+          - exp_labels: { severity: ticket }
+            exp_annotations: { summary: "p95 latency above 1s" }
+
+  - interval: 1m
+    input_series:
+      - series: 'http_request_duration_seconds_bucket{method="GET",route="/api/claims",le="0.5"}'
+        values: '0+60x20'
+      - series: 'http_request_duration_seconds_bucket{method="GET",route="/api/claims",le="1"}'
+        values: '0+60x20'
+      - series: 'http_request_duration_seconds_bucket{method="GET",route="/api/claims",le="2.5"}'
+        values: '0+60x20'
+      - series: 'http_request_duration_seconds_bucket{method="GET",route="/api/claims",le="+Inf"}'
+        values: '0+60x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: HighLatencyP95
+        exp_alerts: []
+
+  # ---- DeadLetterGrowing: มี message ลง DLQ ภายใน 10 นาที ----
+  - interval: 1m
+    input_series:
+      - series: 'consumer_messages_total{outcome="dlq"}'
+        values: '0 0 0 1 1 1 1'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: DeadLetterGrowing
+        exp_alerts:
+          - exp_labels: { severity: ticket, outcome: dlq }
+            exp_annotations: { summary: "messages are landing in the dead-letter topic" }
+
+  - interval: 1m
+    input_series:
+      - series: 'consumer_messages_total{outcome="dlq"}'
+        values: '0 0 0 0 0 0 0'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: DeadLetterGrowing
+        exp_alerts: []
+
+  # ---- AuthFailureSpike: login ผิดเกิน 1 ครั้ง/วินาที นาน 5 นาที ----
+  - interval: 1m
+    input_series:
+      - series: 'auth_failures_total{reason="bad_password"}'
+        values: '0+120x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: AuthFailureSpike
+        exp_alerts:
+          - exp_labels: { severity: ticket }
+            exp_annotations: { summary: "more than 1 failed authentication per second" }
+
+  - interval: 1m
+    input_series:
+      - series: 'auth_failures_total{reason="bad_password"}'
+        values: '0+6x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: AuthFailureSpike
+        exp_alerts: []
+
+  # ---- AccessDeniedSeen: owner check ปฏิเสธอย่างน้อย 1 ครั้งใน 10 นาที ----
+  - interval: 1m
+    input_series:
+      - series: 'authz_denied_total{resource="claim"}'
+        values: '0 0 1 1 1 1'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: AccessDeniedSeen
+        exp_alerts:
+          - exp_labels: { severity: ticket, resource: claim }
+            exp_annotations: { summary: "owner check refused a request (possible IDOR probing)" }
+
+  - interval: 1m
+    input_series:
+      - series: 'authz_denied_total{resource="claim"}'
+        values: '0 0 0 0 0 0'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: AccessDeniedSeen
+        exp_alerts: []
+
+  # ---- DbPoolSaturated: pool ใช้เกิน 90% นาน 2 นาที ----
+  - interval: 1m
+    input_series:
+      - series: 'db_pool_acquired_conns'
+        values: '10+0x10'
+      - series: 'db_pool_max_conns'
+        values: '10+0x10'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: DbPoolSaturated
+        exp_alerts:
+          - exp_labels: { severity: ticket }
+            exp_annotations: { summary: "more than 90% of the DB pool is in use" }
+
+  - interval: 1m
+    input_series:
+      - series: 'db_pool_acquired_conns'
+        values: '2+0x10'
+      - series: 'db_pool_max_conns'
+        values: '10+0x10'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: DbPoolSaturated
+        exp_alerts: []

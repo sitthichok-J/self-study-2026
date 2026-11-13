@@ -1,0 +1,78 @@
+{
+  "alert_metrics": [
+    "auth_failures_total",
+    "authz_denied_total",
+    "consumer_messages_total",
+    "db_pool_acquired_conns",
+    "db_pool_max_conns",
+    "http_request_duration_seconds",
+    "http_requests_total"
+  ],
+  "alerts": {
+    "AccessDeniedSeen": "ticket",
+    "ApiDown": "page",
+    "AuthFailureSpike": "ticket",
+    "DbPoolSaturated": "ticket",
+    "DeadLetterGrowing": "ticket",
+    "HighErrorRate": "page",
+    "HighLatencyP95": "ticket"
+  },
+  "dashboard_metrics": [
+    "auth_failures_total",
+    "authz_denied_total",
+    "claims_decided_total",
+    "claims_submitted_total",
+    "consumer_messages_total",
+    "db_pool_acquired_conns",
+    "db_pool_idle_conns",
+    "db_pool_max_conns",
+    "go_goroutines",
+    "go_heap_alloc_bytes",
+    "http_panics_total",
+    "http_request_duration_seconds",
+    "http_requests_in_flight",
+    "http_requests_total",
+    "outbox_publish_total",
+    "trace_export_total",
+    "trace_spans_dropped_total"
+  ],
+  "deployments": {
+    "grafana": {
+      "image": "grafana/grafana:11.3.0",
+      "memory_limit": "384Mi",
+      "ports": [
+        3000
+      ]
+    },
+    "prometheus": {
+      "image": "prom/prometheus:v2.55.1",
+      "memory_limit": "384Mi",
+      "ports": [
+        9090
+      ]
+    }
+  },
+  "promtool_cases": 14,
+  "scrape_targets": {
+    "claims-api": [
+      "api-metrics:9090"
+    ],
+    "claims-worker": [
+      "worker-metrics:9090"
+    ]
+  },
+  "services": {
+    "api-metrics": [
+      9090
+    ],
+    "grafana": [
+      3000
+    ],
+    "prometheus": [
+      9090
+    ],
+    "worker-metrics": [
+      9090
+    ]
+  }
+}

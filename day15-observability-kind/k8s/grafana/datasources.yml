@@ -1,0 +1,9 @@
+# เหลือแค่ Prometheus: Day 13 มี Jaeger ด้วย แต่ใน cluster ยังไม่มี Jaeger/collector
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
