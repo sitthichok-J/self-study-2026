@@ -1,0 +1,7 @@
+<article class="card" [class.selected]="selected()">
+  <h3 class="card-id">{{ claim().id }}</h3>
+  <p class="owner">{{ claim().ownerName }}</p>
+  <p class="amount">{{ claim().amount }} บาท</p>
+  <p class="status">{{ claim().status }}</p>
+  <button type="button" (click)="onSelect()">เลือก</button>
+</article>

@@ -1,0 +1,39 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ClaimList > baseline: ข้อความที่หน้ารายการแสดง 1`] = `
+{
+  "heading": "Claim List",
+  "summary": [
+    {
+      "amount": "1500 บาท",
+      "id": "CLM-001",
+      "owner": "สมชาย ตัวอย่าง",
+      "status": "PENDING",
+    },
+    {
+      "amount": "32000 บาท",
+      "id": "CLM-002",
+      "owner": "สมหญิง ทดสอบ",
+      "status": "APPROVED",
+    },
+    {
+      "amount": "4800 บาท",
+      "id": "CLM-003",
+      "owner": "วิชัย สมมติ",
+      "status": "REJECTED",
+    },
+    {
+      "amount": "760 บาท",
+      "id": "CLM-004",
+      "owner": "มานี ตัวอย่าง",
+      "status": "PENDING",
+    },
+    {
+      "amount": "12500 บาท",
+      "id": "CLM-005",
+      "owner": "ปิติ ทดสอบ",
+      "status": "APPROVED",
+    },
+  ],
+}
+`;

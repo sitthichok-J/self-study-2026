@@ -1,0 +1,17 @@
+<section>
+  <h2>Claim List</h2>
+  @for (claim of claims(); track claim.id) {
+    <app-claim-card
+      [claim]="claim"
+      [selected]="claim.id === selectedId()"
+      (select)="onSelect($event)"
+    />
+  }
+  <p class="selected-info">
+    @if (selectedId(); as id) {
+      เลือกอยู่: {{ id }}
+    } @else {
+      ยังไม่ได้เลือกรายการ
+    }
+  </p>
+</section>
