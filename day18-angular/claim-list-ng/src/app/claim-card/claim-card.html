@@ -1,0 +1,18 @@
+<article class="card" [class.selected]="selected()">
+  <h3 class="card-id">{{ claim().id }}</h3>
+  <p class="owner">{{ claim().patient_ref }}</p>
+  <!-- backend ส่ง amount เป็นสตางค์ แสดงเป็นบาท -->
+  <p class="amount">{{ amountBaht() }} บาท</p>
+  @switch (claim().status) {
+    @case ('PENDING') {
+      <p class="status badge pending">{{ claim().status }}</p>
+    }
+    @case ('APPROVED') {
+      <p class="status badge approved">{{ claim().status }}</p>
+    }
+    @case ('REJECTED') {
+      <p class="status badge rejected">{{ claim().status }}</p>
+    }
+  }
+  <button type="button" (click)="onSelect()">เลือก</button>
+</article>
