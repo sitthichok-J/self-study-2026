@@ -1,0 +1,47 @@
+<section>
+  <h2>Claim List</h2>
+
+  <div class="summary">
+    <p class="total">ยอดรวมทั้งหมด: {{ totalAmount() }} บาท</p>
+    <p class="counts">
+      PENDING {{ countByStatus().PENDING }} · APPROVED {{ countByStatus().APPROVED }} ·
+      REJECTED {{ countByStatus().REJECTED }}
+    </p>
+  </div>
+
+  <div class="filters">
+    <label>
+      สถานะ
+      <select class="status-filter" (change)="onStatusChange($any($event.target).value)">
+        <option value="ALL">ทั้งหมด</option>
+        <option value="PENDING">PENDING</option>
+        <option value="APPROVED">APPROVED</option>
+        <option value="REJECTED">REJECTED</option>
+      </select>
+    </label>
+    <label>
+      ค้นหา
+      <input class="search" type="text" placeholder="id หรือชื่อ" (input)="onSearch($any($event.target).value)" />
+    </label>
+  </div>
+
+  <p class="result-info">แสดง {{ filtered().length }} จาก {{ claims().length }} รายการ (ยอดรวมที่แสดง {{ filteredAmount() }} บาท)</p>
+
+  @for (claim of filtered(); track claim.id) {
+    <app-claim-card
+      [claim]="claim"
+      [selected]="claim.id === selectedId()"
+      (select)="onSelect($event)"
+    />
+  } @empty {
+    <p class="empty">ไม่พบรายการที่ตรงกับเงื่อนไข</p>
+  }
+
+  <p class="selected-info">
+    @if (selectedId(); as id) {
+      เลือกอยู่: {{ id }}
+    } @else {
+      ยังไม่ได้เลือกรายการ
+    }
+  </p>
+</section>

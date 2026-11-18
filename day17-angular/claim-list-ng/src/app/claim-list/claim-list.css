@@ -1,0 +1,6 @@
+.summary { margin-bottom: 12px; }
+.summary p { margin: 2px 0; }
+.filters { display: flex; gap: 16px; margin-bottom: 12px; }
+.filters label { display: flex; gap: 8px; align-items: center; }
+.result-info { color: #555; margin: 4px 0 12px; }
+.empty { color: #a15c00; }

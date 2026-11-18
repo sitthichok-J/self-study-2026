@@ -1,0 +1,18 @@
+<article class="card" [class.selected]="selected()">
+  <h3 class="card-id">{{ claim().id }}</h3>
+  <p class="owner">{{ claim().ownerName }}</p>
+  <p class="amount">{{ claim().amount }} บาท</p>
+  <!-- วันที่ 2: @switch เลือกป้ายสีตามสถานะ -->
+  @switch (claim().status) {
+    @case ('PENDING') {
+      <p class="status badge pending">{{ claim().status }}</p>
+    }
+    @case ('APPROVED') {
+      <p class="status badge approved">{{ claim().status }}</p>
+    }
+    @case ('REJECTED') {
+      <p class="status badge rejected">{{ claim().status }}</p>
+    }
+  }
+  <button type="button" (click)="onSelect()">เลือก</button>
+</article>
