@@ -1,0 +1,14 @@
+import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    // วันที่ 3: ต้องลงทะเบียน HttpClient ก่อน ไม่งั้น inject(HttpClient) ใน service จะ error
+    provideHttpClient(),
+    // withComponentInputBinding: ค่า :id ใน URL ถูกส่งเข้า input() ชื่อ id ของ component โดยตรง
+    provideRouter(routes, withComponentInputBinding())
+  ]
+};

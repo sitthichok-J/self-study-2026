@@ -1,0 +1,5 @@
+.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; max-width: 360px; }
+input { padding: 6px 8px; }
+.field-error, .server-error { color: #b3261e; margin: 0; font-size: 14px; }
+.server-error { margin-bottom: 12px; }
+.back { display: inline-block; margin-bottom: 8px; }
