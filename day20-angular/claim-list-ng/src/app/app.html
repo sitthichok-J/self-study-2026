@@ -1,0 +1,14 @@
+<main>
+  <h1>Claim Tracker (Angular)</h1>
+  <nav class="nav">
+    <a routerLink="/claims" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">รายการ</a>
+    <a routerLink="/claims/new" routerLinkActive="active">สร้างเคลม</a>
+    <!-- จำลองล็อกอินเพื่อทดสอบ guard ของหน้าสร้างเคลม -->
+    @if (auth.loggedIn()) {
+      <button type="button" class="auth" (click)="auth.logout()">ออกจากระบบ (จำลอง)</button>
+    } @else {
+      <button type="button" class="auth" (click)="auth.login()">ล็อกอิน (จำลอง)</button>
+    }
+  </nav>
+  <router-outlet />
+</main>

@@ -1,0 +1,22 @@
+<section>
+  <a routerLink="/claims" class="back">← กลับไปรายการ</a>
+  <h2>รายละเอียดเคลม {{ id() }}</h2>
+
+  @if (claim.isLoading()) {
+    <p class="loading">กำลังโหลดเคลม...</p>
+  } @else if (errorMessage(); as message) {
+    <p class="error">โหลดเคลมไม่สำเร็จ: {{ message }}</p>
+  } @else if (claim.hasValue()) {
+    @let c = claim.value();
+    <dl class="detail">
+      <dt>id</dt><dd class="d-id">{{ c.id }}</dd>
+      <dt>patient_ref</dt><dd class="d-ref">{{ c.patient_ref }}</dd>
+      <dt>ยอดเงิน</dt><dd class="d-amount">{{ amountBaht() }} บาท</dd>
+      <dt>สถานะ</dt><dd class="d-status">{{ c.status }}</dd>
+      @if (c.decision_reason) {
+        <dt>เหตุผล</dt><dd class="d-reason">{{ c.decision_reason }}</dd>
+      }
+      <dt>สร้างเมื่อ</dt><dd class="d-created">{{ c.created_at }}</dd>
+    </dl>
+  }
+</section>

@@ -1,0 +1,46 @@
+# วางที่ <repo>/.github/workflows/day20.yml (GitHub อ่านเฉพาะที่ root ของ repo)
+# รัน unit test และ ng build ของ Claim List (Angular) ไม่มี secret ไม่เรียก backend จริง เทสต์ใช้ HttpTestingController
+# ยังไม่เคยรันบน GitHub จริงตอนเขียนไฟล์นี้ ผลจริงดูที่หน้า Actions หลัง push (จดผลไว้ใน day20-angular/README.md)
+name: day20
+on:
+  push:
+    branches: [main]
+    paths: ["day20-angular/**", ".github/workflows/day20.yml"]
+  pull_request:
+    paths: ["day20-angular/**", ".github/workflows/day20.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: day20-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  angular:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: day20-angular/claim-list-ng
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: day20-angular/claim-list-ng/package-lock.json
+      - run: npm ci
+      # vitest + jsdom ผ่าน ng test (ปิด watch) รวม baseline snapshot ถ้า snapshot เปลี่ยนโดยไม่ตั้งใจ job นี้จะล้ม
+      - run: npm run test:ci
+      # production build ตรวจ bundle budget ใน angular.json (initial เกิน 350kB = error)
+      - run: npm run build
+      - name: ขนาด bundle ลง summary
+        run: |
+          {
+            echo '### bundle (dist/claim-list-ng/browser)'
+            echo '```'
+            ls -l dist/claim-list-ng/browser/*.js | awk '{print $5, $9}'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
