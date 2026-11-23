@@ -1,0 +1,59 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ClaimList: ตัวกรอง ค้นหา และเลือก (ของวันที่ 17 ยังทำงานบนข้อมูลจาก backend) > baseline: ข้อความที่หน้ารายการแสดง และผลกรองแต่ละสถานะ 1`] = `
+{
+  "byStatus": {
+    "ALL": [
+      "CLM-001",
+      "CLM-002",
+      "CLM-003",
+      "CLM-004",
+      "CLM-005",
+    ],
+    "APPROVED": [
+      "CLM-002",
+      "CLM-005",
+    ],
+    "PENDING": [
+      "CLM-001",
+      "CLM-004",
+    ],
+    "REJECTED": [
+      "CLM-003",
+    ],
+  },
+  "cards": [
+    {
+      "amount": "1500 บาท",
+      "id": "CLM-001",
+      "owner": "FAKE-AB12",
+      "status": "PENDING",
+    },
+    {
+      "amount": "32000 บาท",
+      "id": "CLM-002",
+      "owner": "FAKE-CD34",
+      "status": "APPROVED",
+    },
+    {
+      "amount": "4800 บาท",
+      "id": "CLM-003",
+      "owner": "FAKE-EF56",
+      "status": "REJECTED",
+    },
+    {
+      "amount": "760 บาท",
+      "id": "CLM-004",
+      "owner": "FAKE-GH78",
+      "status": "PENDING",
+    },
+    {
+      "amount": "12500 บาท",
+      "id": "CLM-005",
+      "owner": "FAKE-JK90",
+      "status": "APPROVED",
+    },
+  ],
+  "heading": "Claim List",
+}
+`;

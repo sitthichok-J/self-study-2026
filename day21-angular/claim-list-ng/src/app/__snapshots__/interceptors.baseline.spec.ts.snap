@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`baseline: request ที่ออกไป backend > list, get, create 1`] = `
+[
+  {
+    "body": null,
+    "idempotencyKey": null,
+    "method": "GET",
+    "url": "/api/claims?limit=10&offset=0&status=APPROVED",
+  },
+  {
+    "body": null,
+    "idempotencyKey": null,
+    "method": "GET",
+    "url": "/api/claims/0b5f6c1e-aaaa-bbbb-cccc-111122223333",
+  },
+  {
+    "body": {
+      "amount": 150000,
+      "patient_ref": "FAKE-AB12",
+    },
+    "idempotencyKey": "form-key-1",
+    "method": "POST",
+    "url": "/api/claims",
+  },
+]
+`;
