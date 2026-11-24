@@ -1,0 +1,6 @@
+.detail { display: grid; grid-template-columns: 140px 1fr; gap: 6px 16px; }
+.detail dt { color: #666; }
+.detail dd { margin: 0; }
+.loading { color: #666; }
+.error { color: #b3261e; }
+.back { display: inline-block; margin-bottom: 8px; }
