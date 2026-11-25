@@ -1,0 +1,30 @@
+<section>
+  <a routerLink="/claims" class="back">← กลับไปรายการ</a>
+  <h2>สร้างเคลมใหม่ (Signal Forms)</h2>
+
+  <form [formRoot]="form">
+    <div class="field">
+      <label for="patient_ref">patient_ref</label>
+      <input id="patient_ref" [formField]="form.patient_ref" placeholder="FAKE-AB12" autocomplete="off" />
+      @if (fieldError(form.patient_ref); as msg) {
+        <p class="field-error" data-field="patient_ref">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="amountBaht">ยอดเงิน (บาท)</label>
+      <input id="amountBaht" type="number" step="0.01" [formField]="form.amountBaht" placeholder="1500" />
+      @if (fieldError(form.amountBaht); as msg) {
+        <p class="field-error" data-field="amountBaht">{{ msg }}</p>
+      }
+    </div>
+
+    @if (serverError(); as msg) {
+      <p class="server-error">{{ msg }}</p>
+    }
+
+    <button type="submit" class="submit" [disabled]="form().submitting()">
+      {{ form().submitting() ? 'กำลังส่ง...' : 'ส่งเคลม' }}
+    </button>
+  </form>
+</section>

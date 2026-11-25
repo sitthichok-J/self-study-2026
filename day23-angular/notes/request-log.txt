@@ -1,0 +1,18 @@
+1 เปิดหน้า: การ์ด 10 ใบ (CLM-023..CLM-014) หน้า 1 ก่อนหน้ากดไม่ได้=true ถัดไปกดไม่ได้=false | ยอดรวมในหน้านี้: 18500 บาท
+2 กดถัดไป: 10 ใบ (CLM-013..CLM-004) หน้า 2 ก่อนหน้ากดไม่ได้=false ถัดไปกดไม่ได้=false
+3 หน้าสุดท้าย: 3 ใบ (CLM-003..CLM-001) หน้า 3 ถัดไปกดไม่ได้=true
+4 กรอง PENDING จากหน้า 3: กลับ หน้า 1 การ์ด 8 ใบ [CLM-021,CLM-018,CLM-015,CLM-012,CLM-009,CLM-006,CLM-004,CLM-001] select ค้างที่=PENDING ถัดไปกดไม่ได้=true
+5 ขนาดหน้า 5: 5 ใบ [CLM-023,CLM-022,CLM-021,CLM-020,CLM-019] หน้า 1
+6 หน้าถัดไปได้ 503 สามครั้ง: โหลดรายการไม่สำเร็จ: backend ตอบ HTTP 503 | request ที่ยิง 3 ตัว (retry GET 2 ครั้งจาก interceptor Day 21) | หน้า 2
+6b กดลองใหม่: การ์ด 5 ใบ [CLM-018,CLM-017,CLM-016,CLM-015,CLM-014] หน้า 2
+--- request ที่ยิงไป backend ทั้งหมด ---
+ 1 GET /claims?limit=11&offset=0
+ 2 GET /claims?limit=11&offset=10
+ 3 GET /claims?limit=11&offset=20
+ 4 GET /claims?limit=11&offset=0&status=PENDING
+ 5 GET /claims?limit=11&offset=0
+ 6 GET /claims?limit=6&offset=0
+ 7 GET /claims?limit=6&offset=5
+ 8 GET /claims?limit=6&offset=5
+ 9 GET /claims?limit=6&offset=5
+10 GET /claims?limit=6&offset=5

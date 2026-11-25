@@ -1,0 +1,71 @@
+<section>
+  <h2>Claim List</h2>
+
+  <div class="filters">
+    <label>
+      สถานะ
+      <select class="status-filter" (change)="onStatusChange($any($event.target).value)">
+        <option value="ALL">ทั้งหมด</option>
+        <option value="PENDING">PENDING</option>
+        <option value="APPROVED">APPROVED</option>
+        <option value="REJECTED">REJECTED</option>
+      </select>
+    </label>
+    <label>
+      ต่อหน้า
+      <select class="page-size" (change)="onPageSize($any($event.target).value)">
+        @for (size of pageSizes; track size) {
+          <option [value]="size" [selected]="store.pageSize() === size">{{ size }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      ค้นหาในหน้านี้
+      <input class="search" type="text" placeholder="id หรือ patient_ref" (input)="onSearch($any($event.target).value)" />
+    </label>
+  </div>
+
+  @if (loading()) {
+    <p class="loading">กำลังโหลดรายการ...</p>
+  } @else if (error(); as message) {
+    <div class="error-box">
+      <p class="error">โหลดรายการไม่สำเร็จ: {{ message }}</p>
+      <button type="button" class="retry" (click)="load()">ลองใหม่</button>
+    </div>
+  } @else {
+
+    <div class="summary">
+      <p class="total">ยอดรวมในหน้านี้: {{ totalAmount() }} บาท</p>
+      <p class="counts">
+        PENDING {{ countByStatus().PENDING }} · APPROVED {{ countByStatus().APPROVED }} ·
+        REJECTED {{ countByStatus().REJECTED }} (นับเฉพาะหน้านี้)
+      </p>
+    </div>
+
+    <p class="result-info">แสดง {{ filtered().length }} จาก {{ claims().length }} รายการในหน้านี้ (ยอดรวมที่แสดง {{ filteredAmount() }} บาท)</p>
+
+    @for (claim of filtered(); track claim.id) {
+      <app-claim-card
+        [claim]="claim"
+        [selected]="claim.id === selectedId()"
+        (select)="onSelect($event)"
+      />
+    } @empty {
+      <p class="empty">ไม่พบรายการที่ตรงกับเงื่อนไข</p>
+    }
+
+    <p class="selected-info">
+      @if (selectedId(); as id) {
+        เลือกอยู่: {{ id }}
+      } @else {
+        ยังไม่ได้เลือกรายการ
+      }
+    </p>
+  }
+
+  <div class="pager">
+    <button type="button" class="prev" [disabled]="!store.hasPrev()" (click)="store.prev()">← ก่อนหน้า</button>
+    <span class="page-info">หน้า {{ store.page() + 1 }}</span>
+    <button type="button" class="next" [disabled]="!store.hasNext()" (click)="store.next()">ถัดไป →</button>
+  </div>
+</section>
