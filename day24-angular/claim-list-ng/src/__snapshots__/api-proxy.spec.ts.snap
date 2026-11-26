@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`api proxy (SSR) > baseline: รายการ header ที่ส่งต่อ 1`] = `
+[
+  "content-type",
+  "accept",
+  "idempotency-key",
+]
+`;

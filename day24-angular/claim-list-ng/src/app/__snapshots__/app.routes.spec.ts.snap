@@ -1,0 +1,41 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`routes > baseline: ตาราง route ปัจจุบัน (path, redirect, lazy, guard) 1`] = `
+[
+  {
+    "eager": false,
+    "guards": 0,
+    "lazy": false,
+    "path": "",
+    "redirectTo": "claims",
+  },
+  {
+    "eager": true,
+    "guards": 0,
+    "lazy": false,
+    "path": "claims",
+    "redirectTo": null,
+  },
+  {
+    "eager": false,
+    "guards": 1,
+    "lazy": true,
+    "path": "claims/new",
+    "redirectTo": null,
+  },
+  {
+    "eager": false,
+    "guards": 1,
+    "lazy": true,
+    "path": "claims/new-signal",
+    "redirectTo": null,
+  },
+  {
+    "eager": false,
+    "guards": 0,
+    "lazy": true,
+    "path": "claims/:id",
+    "redirectTo": null,
+  },
+]
+`;

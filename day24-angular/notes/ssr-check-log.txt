@@ -1,0 +1,24 @@
+A /claims: HTML 15053 bytes | การ์ด 10 | pager true | detail false | มี ng-state true | ng-server-context ssr
+A /claims/CLM-003: HTML 4673 bytes | การ์ด 0 | pager false | detail true | มี ng-state true | ng-server-context ssr
+A /claims/new: HTML 541 bytes | การ์ด 0 | pager false | detail false | มี ng-state false | ng-server-context -
+B ปิด JavaScript: เห็นการ์ด 10 ใบ, ปุ่มถัดไป disabled=false
+C โหลด /claims ด้วย JS: การ์ดใน HTML ตอน DOMContentLoaded 10 → ตอนนี้ 10 | node เดิมถูกใช้ซ้ำ=true (isConnected=true)
+C request ไป /api ตอนโหลดหน้า (browser): ไม่มีเลย (ใช้ข้อมูลที่ฝังมากับ HTML)
+C ไฟล์ js/css ที่โหลดตอนเปิด /claims: main-WE6S5QUH.js, styles-5INURTSO.css
+C console error/warning: ไม่มี
+C คลิกการ์ด (ยังอยู่หน้า list) ไฟล์ใหม่: ไม่มี
+C กดลิงก์ "สร้างเคลม" (client navigation) ไฟล์ใหม่: chunk-DL00Xm3c.js, chunk-CowlZ26v.js | url=/claims/new
+C เปิด /claims/CLM-003 ตรง ๆ (server render) ไฟล์ที่โหลด: main-WE6S5QUH.js, chunk-C5C-oWCt.js, styles-5INURTSO.css | detail=CLM-003 | request /api: ไม่มี
+D ก่อน JS มาถึง: เห็นการ์ด 10 ใบ, หน้า "หน้า 1" ปุ่มถัดไป disabled=false
+D คลิก "ถัดไป" ตอนที่ยังไม่ hydrate (+163 ms)
+D หลัง hydrate: หน้า "หน้า 2" การ์ด 10 ใบ | request /api: /api/claims?limit=11&offset=10
+
+--- dev build (ng build --configuration development) console ---
+log: Angular is running in development mode.
+log: [claim-list] filter เปลี่ยน: status=ALL search=""
+log: Angular hydrated 12 component(s) and 286 node(s), 0 component(s) were skipped. 1 defer block(s) were configured to use incremental hydration. Learn more at https://v22.angular.dev/guide/hydration.
+log: Angular is running in development mode.
+log: Angular hydrated 2 component(s) and 58 node(s), 0 component(s) were skipped. 0 defer block(s) were configured to use incremental hydration. Learn more at https://v22.angular.dev/guide/hydration.
+log: Angular is running in development mode.
+log: [claim-list] filter เปลี่ยน: status=ALL search=""
+log: Angular hydrated 12 component(s) and 286 node(s), 0 component(s) were skipped. 1 defer block(s) were configured to use incremental hydration. Learn more at https://v22.angular.dev/guide/hydration.

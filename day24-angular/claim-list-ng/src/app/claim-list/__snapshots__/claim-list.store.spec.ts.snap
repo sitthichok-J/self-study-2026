@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ClaimListStore (วันที่ 23) > baseline: query ที่ส่งไป backend ตามลำดับการกระทำของผู้ใช้ 1`] = `
+[
+  "เปิดหน้า: ?limit=11&offset=0",
+  "ถัดไป: ?limit=11&offset=10",
+  "กรอง PENDING (กลับหน้าแรก): ?limit=11&offset=0&status=PENDING",
+  "ขนาดหน้า 5: ?limit=6&offset=0&status=PENDING",
+  "ถัดไป: ?limit=6&offset=5&status=PENDING",
+  "กลับ ALL (กลับหน้าแรก): ?limit=6&offset=0",
+]
+`;
