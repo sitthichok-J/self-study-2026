@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ClaimForm (reactive forms) > baseline: ข้อความ error ของแต่ละค่าที่กรอก (เก็บพฤติกรรมปัจจุบันไว้) 1`] = `
+[
+  {
+    "amountBaht": "กรอกยอดเงิน",
+    "baht": null,
+    "patient_ref": "กรอก patient_ref",
+    "ref": "",
+  },
+  {
+    "amountBaht": null,
+    "baht": 1500,
+    "patient_ref": null,
+    "ref": "FAKE-AB12",
+  },
+  {
+    "amountBaht": "ยอดเงินต้องมากกว่า 0",
+    "baht": 0,
+    "patient_ref": "ต้องเป็นรูปแบบ FAKE-XXXX (ตัวพิมพ์ใหญ่หรือตัวเลข 3-12 ตัว)",
+    "ref": "fake-ab12",
+  },
+  {
+    "amountBaht": "ยอดเงินต้องมากกว่า 0",
+    "baht": -1,
+    "patient_ref": "ต้องเป็นรูปแบบ FAKE-XXXX (ตัวพิมพ์ใหญ่หรือตัวเลข 3-12 ตัว)",
+    "ref": "FAKE-AB",
+  },
+  {
+    "amountBaht": "ยอดเงินต้องมากกว่า 0",
+    "baht": 0.005,
+    "patient_ref": null,
+    "ref": "FAKE-AB12",
+  },
+  {
+    "amountBaht": "ยอดเงินต้องไม่เกิน 10,000,000 บาท",
+    "baht": 10000000.01,
+    "patient_ref": null,
+    "ref": "FAKE-AB12",
+  },
+]
+`;

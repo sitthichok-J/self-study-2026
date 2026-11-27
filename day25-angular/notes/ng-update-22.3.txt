@@ -1,0 +1,10 @@
+ทดลองใน scratch (สำเนาของ claim-list-ng แยกจากโฟลเดอร์จริง) ไม่ได้ใช้กับ day25-angular
+$ npx ng update            -> @angular/cli 22.2.7 -> 22.3.0, @angular/core 22.2.6 -> 22.3.0
+$ npx ng update @angular/cli @angular/core
+  package.json: @angular/* (common, compiler, core, forms, platform-browser, platform-server, router, ssr, build, cli, compiler-cli) ^22.2.x -> ^22.3.0
+  (รวม ssr/platform-server/build ที่ไม่ได้อยู่ในคำสั่ง ng update แยกให้เอง) package-lock.json เปลี่ยน ~1,900 บรรทัด
+  migration: ไม่มีที่รันอัตโนมัติ มี optional 1 อัน (use-library-builder สำหรับ library project) ไม่เกี่ยวกับแอปนี้ ไม่ได้รัน
+ผลหลังอัปเกรด (Linux):
+  npm run test:ci   137/137 ผ่าน
+  npm run build     ผ่าน initial 333.44 kB (22.2: 331.83 kB, +1.61 kB)
+  npx playwright test  19/19 ผ่าน

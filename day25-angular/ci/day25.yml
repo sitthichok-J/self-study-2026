@@ -1,0 +1,46 @@
+# วางที่ <repo>/.github/workflows/day25.yml (GitHub อ่านเฉพาะที่ root ของ repo)
+# รัน unit test, production build (SSR) แล้ว e2e ด้วย Playwright + axe กับ mock API ไม่มี secret ไม่เรียก backend จริง
+# ยังไม่เคยรันบน GitHub จริงตอนเขียนไฟล์นี้ (ลองรัน `CI=true npm run ci:e2e` บน Linux แล้วเท่านั้น) ผลจริงดูที่หน้า Actions
+name: day25
+on:
+  push:
+    branches: [main]
+    paths: ["day25-angular/**", ".github/workflows/day25.yml"]
+  pull_request:
+    paths: ["day25-angular/**", ".github/workflows/day25.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: day25-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  angular:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: day25-angular/claim-list-ng
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: day25-angular/claim-list-ng/package-lock.json
+      - run: npm ci
+      - run: npm run test:ci
+      # ลง chromium ให้ตรงกับเวอร์ชัน @playwright/test ใน package-lock (1.63.0)
+      - run: npx playwright install --with-deps chromium
+      # build production (SSR) แล้วรัน e2e (webServer ใน playwright.config.ts เปิด mock API พอร์ต 8090 + server พอร์ต 4310)
+      - run: npm run ci:e2e
+      - name: เก็บผล e2e เมื่อล้ม
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: day25-angular/claim-list-ng/test-results
+          retention-days: 7

@@ -1,0 +1,15 @@
+import { createRequire } from 'node:module'; const require = createRequire(import.meta.url); const { chromium } = require('playwright'); import fs from 'node:fs';
+const out = process.argv[2]; fs.mkdirSync(out, { recursive: true });
+const B = 'http://localhost:4310', API = 'http://localhost:8090';
+await fetch(API + '/__reset', { method: 'POST' });
+const b = await chromium.launch(); const pg = await (await b.newContext({ viewport: { width: 1000, height: 900 }, deviceScaleFactor: 2 })).newPage();
+const shot = (n) => pg.screenshot({ path: `${out}/${n}.png` });
+await pg.goto(B + '/claims'); await pg.waitForSelector('app-claim-card'); await shot('s1-list');
+await pg.getByRole('button', { name: /ถัดไป/ }).click(); await pg.getByRole('button', { name: /ถัดไป/ }).click(); await pg.waitForFunction(() => document.querySelectorAll('.card-id').length === 3); await shot('s2-last-page');
+await pg.getByLabel('สถานะ').selectOption('PENDING'); await pg.waitForTimeout(800); await shot('s3-pending');
+await pg.goto(B + '/claims/CLM-003'); await pg.waitForSelector('.d-id'); await shot('s4-detail');
+await pg.goto(B + '/claims'); await pg.getByRole('button', { name: /ล็อกอิน/ }).click(); await pg.getByRole('link', { name: 'สร้างเคลม', exact: true }).click();
+await pg.getByLabel('patient_ref').fill('abc'); await pg.getByLabel('ยอดเงิน (บาท)').fill('10'); await pg.getByRole('button', { name: 'ส่งเคลม' }).click(); await pg.waitForSelector('.field-error'); await shot('s5-form-error');
+await pg.getByLabel('patient_ref').fill('FAKE-E2E1'); await pg.getByLabel('ยอดเงิน (บาท)').fill('1234.5'); await pg.getByRole('button', { name: 'ส่งเคลม' }).click(); await pg.waitForURL(/\/claims$/); await pg.waitForSelector('app-claim-card'); await shot('s6-created-first');
+await fetch(API + '/__fail?n=3', { method: 'POST' }); await pg.getByRole('button', { name: /ถัดไป/ }).click(); await pg.waitForSelector('.error', { timeout: 15000 }); await shot('s7-error-503');
+await b.close(); console.log('ok');

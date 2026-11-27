@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`server routes (SSR) > baseline: render mode ราย route 1`] = `
+[
+  "(root) → Server",
+  "claims → Server",
+  "claims/new → Client",
+  "claims/new-signal → Client",
+  "claims/:id → Server",
+  "** → Server",
+]
+`;
